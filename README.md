@@ -1,4 +1,4 @@
-# BigQuery Result Explorer
+# BigQuery Explorer
 
 > 💛 **Enjoying this extension?** [**❤️ Sponsor its development**](https://github.com/sponsors/benaventiDev) — sponsorships keep it free, maintained, and improving.
 
@@ -10,7 +10,7 @@ grid — instead of exporting to CSV and opening Excel.
 [![Installs](https://img.shields.io/visual-studio-marketplace/i/benaventi.bq-vs-extension)](https://marketplace.visualstudio.com/items?itemName=benaventi.bq-vs-extension)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-![The BigQuery Result Explorer grid showing query results in VS Code's bottom panel](https://raw.githubusercontent.com/benaventiDev/bq-vs-extension/main/images/hero.png)
+![The BigQuery Explorer grid showing query results in VS Code's bottom panel](https://raw.githubusercontent.com/benaventiDev/bq-vs-extension/main/images/hero.png)
 
 Open a `.sql` file, select a query, press **Shift+Enter** — the result appears in an
 Excel-like grid in the bottom panel. The panel always shows the result for whichever `.sql`
@@ -69,7 +69,7 @@ columns you want to keep in view as you scroll.
 
 ## Install
 
-**From the Marketplace:** search **"BigQuery Result Explorer"** in the Extensions view
+**From the Marketplace:** search **"BigQuery Explorer"** in the Extensions view
 (`Ctrl+Shift+X`), or install from the
 [Marketplace page](https://marketplace.visualstudio.com/items?itemName=benaventi.bq-vs-extension).
 
@@ -350,13 +350,13 @@ extension loaded, then open a `.sql` file and press **Shift+Enter**. Package a `
 
 ## Roadmap
 
-BigQuery Result Explorer focuses on the **analysis** layer for query results. Not included today:
+BigQuery Explorer focuses on the **analysis** layer for query results. Not included today:
 query history, a dataset/project browser, dry-run cost preview, and streaming results. Support
 for additional warehouses is on the longer-term roadmap.
 
 ## Support
 
-If BigQuery Result Explorer saves you time, please consider **[sponsoring its development](https://github.com/sponsors/benaventiDev)** 💛 — it keeps the extension free and actively maintained.
+If BigQuery Explorer saves you time, please consider **[sponsoring its development](https://github.com/sponsors/benaventiDev)** 💛 — it keeps the extension free and actively maintained.
 
 [![Sponsor on GitHub](https://img.shields.io/badge/Sponsor-%E2%9D%A4-ea4aaa?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/benaventiDev)
 

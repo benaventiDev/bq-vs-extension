@@ -1,8 +1,14 @@
 # Changelog
 
-All notable changes to **BigQuery Result Explorer** are documented here. The format is
+All notable changes to **BigQuery Explorer** are documented here. The format is
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.3.1] - 2026-07-14
+
+### Changed
+- Renamed the extension to **BigQuery Explorer** (display name only; the extension
+  ID is unchanged).
 
 ## [0.3.0] - 2026-07-13
 

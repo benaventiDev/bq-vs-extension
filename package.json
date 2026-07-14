@@ -1,8 +1,8 @@
 {
   "name": "bq-vs-extension",
-  "displayName": "BigQuery Result Explorer",
+  "displayName": "BigQuery Explorer",
   "description": "Analyze query results in your editor — highlight, conditionally format, pin, filter, sort, and copy in a spreadsheet-style grid instead of exporting to Excel. BigQuery support built in.",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "publisher": "benaventi",
   "author": {
     "name": "Benaventi Fuentes"
@@ -111,7 +111,7 @@
       }
     ],
     "configuration": {
-      "title": "BigQuery Result Explorer",
+      "title": "BigQuery Explorer",
       "properties": {
         "bqVsExtension.format.keywordCase": {
           "type": "string",
