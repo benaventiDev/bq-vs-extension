@@ -39,6 +39,9 @@
     "url": "https://github.com/benaventiDev/bq-vs-extension/issues"
   },
   "homepage": "https://github.com/benaventiDev/bq-vs-extension#readme",
+  "sponsor": {
+    "url": "https://github.com/sponsors/benaventiDev"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -67,6 +70,16 @@
       {
         "command": "bqVsExtension.formatSql",
         "title": "BigQuery: Format SQL",
+        "category": "BigQuery"
+      },
+      {
+        "command": "bqVsExtension.sponsor",
+        "title": "Sponsor",
+        "category": "BigQuery"
+      },
+      {
+        "command": "bqVsExtension.previewSponsorNudge",
+        "title": "Preview Sponsor Message",
         "category": "BigQuery"
       }
     ],
@@ -130,6 +143,16 @@
           "minimum": 1,
           "maximum": 5,
           "description": "Blank lines inserted between separate SQL statements when formatting a multi-statement script."
+        },
+        "bqVsExtension.showSponsorNudge": {
+          "type": "boolean",
+          "default": true,
+          "description": "Occasionally show a sponsor message after a query completes. Turn this off to stop it permanently."
+        },
+        "bqVsExtension.sponsor.previewEveryRun": {
+          "type": "boolean",
+          "default": false,
+          "description": "Preview only: show the sponsor message after every successful query (to preview its appearance). Leave off for normal use."
         }
       }
     },

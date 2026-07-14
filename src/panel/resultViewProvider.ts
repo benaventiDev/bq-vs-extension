@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { buildHtml } from './html';
 import { RulesStore } from './rules/rulesStore';
+import { maybeShowSponsorNudge } from '../sponsor';
 import type {
   HostToWebviewMessage,
   NestedRenderMode,
@@ -170,6 +171,11 @@ export class ResultViewProvider implements vscode.WebviewViewProvider {
     const updated: TabState = { ...existing, result };
     this.tabs.set(key, updated);
     this.postTabUpdate(updated);
+
+    // A completed query is the natural, non-disruptive moment to (very
+    // occasionally) surface the sponsor nudge. Only successful runs count.
+    const succeeded = result.kind === 'ok' || result.kind === 'multi';
+    void maybeShowSponsorNudge(this.context, succeeded);
   }
 
   public onActiveEditorChanged(editor: vscode.TextEditor | undefined): void {

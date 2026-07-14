@@ -4,6 +4,7 @@ import { runSelectionCommand } from './commands/runSelection';
 import { runFileCommand } from './commands/runFile';
 import { RulesStore, isSqlFileUri } from './panel/rules/rulesStore';
 import { registerFormatter } from './format/registerFormatter';
+import { showSponsorNudgeNow, openSponsorPage } from './sponsor';
 
 /** Extract the document URI a tab points at, if it's a text-like tab. */
 function uriFromTab(tab: vscode.Tab): vscode.Uri | undefined {
@@ -46,6 +47,16 @@ export function activate(context: vscode.ExtensionContext): void {
   // DocumentFormattingEditProvider (so Shift+Alt+F / right-click /
   // formatOnSave work) plus a dedicated command + keybinding.
   registerFormatter(context);
+
+  // Sponsor: a "Preview Sponsor Message" command (to see the nudge on demand)
+  // and a direct "Sponsor" command (opens GitHub Sponsors). The gentle,
+  // usage-gated nudge itself fires from ResultViewProvider after a query.
+  context.subscriptions.push(
+    vscode.commands.registerCommand('bqVsExtension.previewSponsorNudge', () => showSponsorNudgeNow()),
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('bqVsExtension.sponsor', () => openSponsorPage()),
+  );
 
   context.subscriptions.push(
     vscode.window.onDidChangeActiveTextEditor((editor) => {

@@ -28,3 +28,6 @@ First public release on the Visual Studio Marketplace.
 - **Export** — CSV, TSV (clipboard), JSON, and Excel (`.xlsx`).
 - Rich cell rendering for nested/struct/array/JSON/bytes values, pagination,
   panel zoom, light/dark themes, and cell-range selection + copy.
+- Optional **sponsor** support: a gentle, usage-gated nudge after queries
+  (disable any time via `bqVsExtension.showSponsorNudge`), plus **Sponsor** and
+  **Preview Sponsor Message** commands.

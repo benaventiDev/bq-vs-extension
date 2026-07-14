@@ -344,6 +344,12 @@ BigQuery Result Explorer focuses on the **analysis** layer for query results. No
 query history, a dataset/project browser, dry-run cost preview, and streaming results. Support
 for additional warehouses is on the longer-term roadmap.
 
+## Support
+
+If BigQuery Result Explorer saves you time, please consider **[sponsoring its development](https://github.com/sponsors/benaventiDev)** 💛 — it keeps the extension free and actively maintained.
+
+[![Sponsor on GitHub](https://img.shields.io/badge/Sponsor-%E2%9D%A4-ea4aaa?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/benaventiDev)
+
 ## License
 
 [MIT](LICENSE) © Benaventi Fuentes
