@@ -10,6 +10,9 @@ grid — instead of exporting to CSV and opening Excel.
 
 ![The BigQuery Result Explorer grid showing query results in VS Code's bottom panel](https://raw.githubusercontent.com/benaventiDev/bq-vs-extension/main/images/hero.png)
 
+> ### 💛 Enjoying BigQuery Result Explorer?
+> **[❤️ Sponsor its development](https://github.com/sponsors/benaventiDev)** — sponsorships keep it free, maintained, and improving. Thank you!
+
 Open a `.sql` file, select a query, press **Shift+Enter** — the result appears in an
 Excel-like grid in the bottom panel. The panel always shows the result for whichever `.sql`
 file is active, so each file keeps its own result. Read-only by design: it's for **analyzing**
