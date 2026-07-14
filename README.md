@@ -1,5 +1,7 @@
 # BigQuery Result Explorer
 
+> 💛 **Enjoying this extension?** [**❤️ Sponsor its development**](https://github.com/sponsors/benaventiDev) — sponsorships keep it free, maintained, and improving.
+
 **Analyze your BigQuery results without leaving VS Code.** Run a query, then highlight,
 conditionally format, pin, filter, sort, and copy the results in a fast, spreadsheet-style
 grid — instead of exporting to CSV and opening Excel.
@@ -10,17 +12,16 @@ grid — instead of exporting to CSV and opening Excel.
 
 ![The BigQuery Result Explorer grid showing query results in VS Code's bottom panel](https://raw.githubusercontent.com/benaventiDev/bq-vs-extension/main/images/hero.png)
 
-> ### 💛 Enjoying BigQuery Result Explorer?
-> **[❤️ Sponsor its development](https://github.com/sponsors/benaventiDev)** — sponsorships keep it free, maintained, and improving. Thank you!
-
 Open a `.sql` file, select a query, press **Shift+Enter** — the result appears in an
 Excel-like grid in the bottom panel. The panel always shows the result for whichever `.sql`
 file is active, so each file keeps its own result. Read-only by design: it's for **analyzing**
 query output, not editing your warehouse.
 
-> **Why not just export to Excel?** The usual loop is *run query → export CSV → open Excel →
-> highlight, format, filter*. BigQuery Result Explorer collapses that into your editor: the
-> analysis happens right where you wrote the query, with no export round-trip.
+> **Built for iterating on data.** Exploring means running a query, realizing it isn't quite
+> what you needed, tweaking it, and running it again — over and over. With the export-to-Excel
+> loop (*run → export CSV → open Excel → format*), you repeat that entire round-trip on **every
+> single re-run**. Here your highlights, conditional formatting, filters, and pins live on the
+> result itself, so each iteration is ready to read the moment it returns — no re-exporting.
 
 ---
 
