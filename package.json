@@ -1,0 +1,178 @@
+{
+  "name": "bq-vs-extension",
+  "displayName": "BigQuery Result Explorer",
+  "description": "Analyze query results in your editor — highlight, conditionally format, pin, filter, sort, and copy in a spreadsheet-style grid instead of exporting to Excel. BigQuery support built in.",
+  "version": "0.3.0",
+  "publisher": "benaventi-fuentes",
+  "author": {
+    "name": "Benaventi Fuentes"
+  },
+  "license": "MIT",
+  "icon": "media/icon.png",
+  "pricing": "Free",
+  "qna": "marketplace",
+  "galleryBanner": {
+    "color": "#12233a",
+    "theme": "dark"
+  },
+  "categories": [
+    "Data Science",
+    "Visualization",
+    "Other"
+  ],
+  "keywords": [
+    "bigquery",
+    "bq",
+    "sql",
+    "gcp",
+    "conditional formatting",
+    "data grid",
+    "spreadsheet",
+    "analysis",
+    "results"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/benaventiDev/bq-vs-extension.git"
+  },
+  "bugs": {
+    "url": "https://github.com/benaventiDev/bq-vs-extension/issues"
+  },
+  "homepage": "https://github.com/benaventiDev/bq-vs-extension#readme",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "main": "./out/extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "commands": [
+      {
+        "command": "bqVsExtension.runSelection",
+        "title": "BigQuery: Run Selection",
+        "category": "BigQuery",
+        "icon": {
+          "light": "media/run-selection-light.svg",
+          "dark": "media/run-selection-dark.svg"
+        }
+      },
+      {
+        "command": "bqVsExtension.runFile",
+        "title": "BigQuery: Run File",
+        "category": "BigQuery",
+        "icon": {
+          "light": "media/run-file-light.svg",
+          "dark": "media/run-file-dark.svg"
+        }
+      },
+      {
+        "command": "bqVsExtension.formatSql",
+        "title": "BigQuery: Format SQL",
+        "category": "BigQuery"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "bqVsExtension.runSelection",
+          "when": "resourceExtname == .sql && editorHasSelection",
+          "group": "navigation@1"
+        },
+        {
+          "command": "bqVsExtension.runFile",
+          "when": "resourceExtname == .sql",
+          "group": "navigation@2"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "bqVsExtension.runSelection",
+        "key": "shift+enter",
+        "when": "editorTextFocus && editorHasSelection && resourceScheme == file && resourceExtname == .sql"
+      },
+      {
+        "command": "bqVsExtension.formatSql",
+        "key": "ctrl+alt+b",
+        "mac": "cmd+alt+b",
+        "when": "editorTextFocus && editorLangId == sql"
+      }
+    ],
+    "configuration": {
+      "title": "BigQuery Result Explorer",
+      "properties": {
+        "bqVsExtension.format.keywordCase": {
+          "type": "string",
+          "enum": [
+            "upper",
+            "lower",
+            "preserve"
+          ],
+          "default": "upper",
+          "description": "Casing for SQL keywords on format (SELECT vs select)."
+        },
+        "bqVsExtension.format.indentSize": {
+          "type": "number",
+          "default": 2,
+          "minimum": 1,
+          "maximum": 8,
+          "description": "Number of spaces per indent level on format."
+        },
+        "bqVsExtension.format.expressionWidth": {
+          "type": "number",
+          "default": 100,
+          "minimum": 40,
+          "maximum": 240,
+          "description": "Maximum line width before the formatter inserts a line break."
+        },
+        "bqVsExtension.format.linesBetweenQueries": {
+          "type": "number",
+          "default": 2,
+          "minimum": 1,
+          "maximum": 5,
+          "description": "Blank lines inserted between separate SQL statements when formatting a multi-statement script."
+        }
+      }
+    },
+    "viewsContainers": {
+      "panel": [
+        {
+          "id": "bqVsExtensionPanel",
+          "title": "BigQuery Results",
+          "icon": "$(database)"
+        }
+      ]
+    },
+    "views": {
+      "bqVsExtensionPanel": [
+        {
+          "type": "webview",
+          "id": "bqVsExtension.resultPanel",
+          "name": "Results"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "compile": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "typecheck": "tsc --noEmit",
+    "vscode:prepublish": "node esbuild.js --production",
+    "package": "vsce package --no-dependencies --no-yarn"
+  },
+  "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.9.1",
+    "esbuild": "^0.20.0",
+    "typescript": "^5.3.0"
+  },
+  "dependencies": {
+    "ag-grid-community": "^31.3.4",
+    "exceljs": "^4.4.0",
+    "google-auth-library": "^10.7.0",
+    "monaco-editor": "^0.55.1",
+    "sql-formatter": "^15.8.0",
+    "tree-kill": "^1.2.2"
+  }
+}

@@ -1,0 +1,2754 @@
+:root {
+  color-scheme: light dark;
+  /* M11 panel zoom. Multiplied into AG Grid sizing vars and into the
+     chrome font-size so the entire panel scales as one unit. Default 1
+     (100%) preserves the M1–M10 sizes byte-for-byte. JS overrides this
+     via documentElement.style.setProperty when the user changes zoom. */
+  --zoom-factor: 1;
+}
+
+:root[data-theme="light"] {
+  --theme-fg: #1f1f1f;
+  --theme-bg: #ffffff;
+  --theme-border: rgba(0, 0, 0, 0.12);
+  --theme-description-fg: #5f6368;
+  --theme-button-bg: #f3f3f3;
+  --theme-button-fg: #1f1f1f;
+  --theme-button-hover: #e8e8e8;
+  --theme-toolbar-hover: rgba(0, 0, 0, 0.06);
+  --theme-error-bg: #fde7e7;
+  --theme-error-fg: #5a1d1d;
+  --theme-error-border: #be1100;
+  --theme-dropdown-bg: #ffffff;
+  --theme-dropdown-fg: #1f1f1f;
+  --theme-dropdown-border: #d4d4d4;
+  --theme-popover-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  /* Pin feature accent (amber). Pin glyph colour + the soft sticky banner
+     and the grid's dashed accent border in the mismatch state. */
+  --pin-accent: #c77800;
+  --pin-banner-bg: #fff4d6;
+  --pin-banner-fg: #5a4300;
+  --pin-banner-border: #e0b65a;
+  /* Colour of the pinned-state pin button only. Separate from --pin-accent
+     so we can trial red on the button without touching the banner/border. */
+  --pin-accent-pinned: #cd3131;
+}
+
+:root[data-theme="dark"] {
+  --theme-fg: #cccccc;
+  --theme-bg: #1f1f1f;
+  --theme-border: rgba(255, 255, 255, 0.12);
+  --theme-description-fg: #9d9d9d;
+  --theme-button-bg: #313131;
+  --theme-button-fg: #cccccc;
+  --theme-button-hover: #3c3c3c;
+  --theme-toolbar-hover: rgba(255, 255, 255, 0.08);
+  --theme-error-bg: #5a1d1d;
+  --theme-error-fg: #ffffff;
+  --theme-error-border: #be1100;
+  --theme-dropdown-bg: #313131;
+  --theme-dropdown-fg: #cccccc;
+  --theme-dropdown-border: #3c3c3c;
+  --theme-popover-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  /* Pin feature accent (amber), tuned brighter for the dark surface. */
+  --pin-accent: #e2a73a;
+  --pin-banner-bg: #3a2f14;
+  --pin-banner-fg: #f0d28a;
+  --pin-banner-border: #6b541f;
+  /* Pinned-button red, brightened for the dark surface. */
+  --pin-accent-pinned: #f14c4c;
+}
+
+/* Scrollbar override (both themes).
+   ──────────────────────────────────
+   VS Code's webview runs a recent Chromium that prefers the modern CSS
+   `scrollbar-color` property over `::-webkit-scrollbar-*` pseudo-
+   elements — pseudo-element rules silently lose to the overlay-
+   scrollbar renderer. Set both: `scrollbar-color` is what actually
+   paints the bar; the pseudo-element block is a defence-in-depth
+   fallback for older webview builds.
+   AG Grid also fades its horizontal/vertical scroll wrappers
+   (`.ag-body-*-scroll.ag-apple-scrollbar`) from opacity 0 → 1 only
+   while actively scrolling, so we force them visible at rest too —
+   that part is theme-independent. */
+.ag-body-horizontal-scroll,
+.ag-body-vertical-scroll {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Dark theme: bright-white thumb on subtle white-tint track. */
+:root[data-theme="dark"] {
+  scrollbar-color: rgba(255, 255, 255, 0.85) rgba(255, 255, 255, 0.08);
+  scrollbar-width: auto;
+}
+/* Target ONLY AG Grid's dedicated scrollbar viewports — NOT the data
+   viewports (`.ag-body-viewport` / `.ag-center-cols-viewport`), which
+   AG Grid intentionally hides via `scrollbar-width: none`. Overriding
+   those would surface a second native scrollbar next to the real one. */
+:root[data-theme="dark"] .ag-body-horizontal-scroll-viewport,
+:root[data-theme="dark"] .ag-body-vertical-scroll-viewport,
+:root[data-theme="dark"] .ag-virtual-list-viewport {
+  scrollbar-color: rgba(255, 255, 255, 0.85) rgba(255, 255, 255, 0.08) !important;
+  scrollbar-width: auto !important;
+}
+:root[data-theme="dark"] ::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
+}
+:root[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.08);
+}
+:root[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border-radius: 7px;
+}
+:root[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.95) !important;
+}
+:root[data-theme="dark"] ::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Light theme: dark-grey thumb on subtle black-tint track. Same
+   structure as the dark block, just inverted colours so the contrast
+   reads against white. */
+:root[data-theme="light"] {
+  scrollbar-color: rgba(0, 0, 0, 0.55) rgba(0, 0, 0, 0.06);
+  scrollbar-width: auto;
+}
+:root[data-theme="light"] .ag-body-horizontal-scroll-viewport,
+:root[data-theme="light"] .ag-body-vertical-scroll-viewport,
+:root[data-theme="light"] .ag-virtual-list-viewport {
+  scrollbar-color: rgba(0, 0, 0, 0.55) rgba(0, 0, 0, 0.06) !important;
+  scrollbar-width: auto !important;
+}
+:root[data-theme="light"] ::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
+}
+:root[data-theme="light"] ::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.06);
+}
+:root[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.55) !important;
+  border-radius: 7px;
+}
+:root[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.75) !important;
+}
+:root[data-theme="light"] ::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  font-family: var(--vscode-font-family);
+  /* M11: chrome font-size scales with --zoom-factor. Children that use
+     `font-size: inherit` (most of our buttons / popovers) pick this up
+     automatically; the few hard-coded sizes downstream also multiply by
+     --zoom-factor explicitly. */
+  font-size: calc(var(--vscode-font-size) * var(--zoom-factor, 1));
+  color: var(--theme-fg);
+  background: var(--theme-bg);
+  overflow: hidden;
+}
+
+.layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.content {
+  flex: 1 1 auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.empty-state {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--theme-description-fg);
+  font-style: italic;
+}
+
+.empty-result {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--theme-description-fg);
+  font-style: italic;
+}
+
+.ag-theme-alpine,
+.ag-theme-alpine-dark {
+  --ag-cell-horizontal-border: 1px solid var(--ag-border-color);
+  --ag-header-column-resize-handle-color: rgba(128, 128, 128, 0.35);
+  --ag-header-column-resize-handle-height: 70%;
+  --ag-header-column-resize-handle-width: 1px;
+  /* M11: all sizing vars scale with --zoom-factor. M3's canvas-based
+     column auto-sizer reads getComputedStyle so it picks up the new font
+     on the next render. */
+  --ag-font-size: calc(14px * var(--zoom-factor, 1));
+  --ag-row-height: calc(24px * var(--zoom-factor, 1));
+  --ag-header-height: calc(28px * var(--zoom-factor, 1));
+  --ag-list-item-height: calc(22px * var(--zoom-factor, 1));
+  --ag-cell-horizontal-padding: calc(4px * var(--zoom-factor, 1));
+}
+
+.ag-theme-alpine .ag-cell-label-container,
+.ag-theme-alpine-dark .ag-cell-label-container {
+  flex-direction: row-reverse !important;
+  justify-content: space-between !important;
+}
+
+.ag-theme-alpine .ag-header-cell-label,
+.ag-theme-alpine-dark .ag-header-cell-label {
+  flex: 0 1 auto !important;
+  flex-direction: row !important;
+  justify-content: flex-start !important;
+}
+
+.ag-theme-alpine .ag-header-cell-text,
+.ag-theme-alpine-dark .ag-header-cell-text {
+  text-align: left;
+}
+
+.ag-theme-alpine .ag-cell,
+.ag-theme-alpine-dark .ag-cell {
+  text-align: right;
+}
+
+.ag-theme-alpine .ag-cell .ag-cell-value,
+.ag-theme-alpine-dark .ag-cell .ag-cell-value {
+  display: block;
+  width: 100%;
+  text-align: right;
+}
+
+.ag-theme-alpine .ag-header-cell-menu-button,
+.ag-theme-alpine-dark .ag-header-cell-menu-button {
+  padding: 0 2px;
+  margin-left: 2px;
+  opacity: 0.7;
+}
+
+.ag-theme-alpine .ag-header-cell-menu-button:hover,
+.ag-theme-alpine-dark .ag-header-cell-menu-button:hover {
+  opacity: 1;
+}
+
+/* Active-filter indicator on the funnel button. Full opacity + accent
+   color so the column is visibly "filtered" at a glance. The accent is
+   the iOS-style on-state green we already use for the highlight toggle —
+   reads as "this control is engaged" in both themes. A subtle scale-up
+   on the SVG (with a short transition) adds the "popped" feel without
+   shifting surrounding layout — transforms don't affect document flow.
+   Returns to normal size + dim color as soon as .filter-active comes
+   off (filter cleared). */
+.ag-theme-alpine .ag-header-cell-menu-button svg,
+.ag-theme-alpine-dark .ag-header-cell-menu-button svg {
+  transition: transform 150ms ease;
+  transform-origin: center;
+}
+.ag-theme-alpine .ag-header-cell-menu-button.filter-active,
+.ag-theme-alpine-dark .ag-header-cell-menu-button.filter-active {
+  opacity: 1;
+  color: #34c759;
+}
+.ag-theme-alpine .ag-header-cell-menu-button.filter-active svg,
+.ag-theme-alpine-dark .ag-header-cell-menu-button.filter-active svg {
+  transform: scale(1.25);
+}
+
+/* M12: Ctrl/Cmd+click column-header highlight. Soft inversion of the
+   active theme — dark slate on light, light slate on dark. Ephemeral
+   (no persistence): cleared on new query / file close / render-mode
+   swap / restart. Class lands on the .ag-header-cell wrapper so the
+   whole cell — including the menu button slot — picks up the color.
+   The funnel and text inherit the inverted foreground via currentColor.
+   !important wins over AG Grid's default header-cell background var. */
+.ag-theme-alpine .ag-header-cell.col-highlighted {
+  background-color: rgba(40, 40, 50, 0.92) !important;
+  color: #f5f5f7 !important;
+}
+.ag-theme-alpine-dark .ag-header-cell.col-highlighted {
+  background-color: rgba(225, 225, 232, 0.92) !important;
+  color: #1f1f23 !important;
+}
+/* Force child text + sort glyphs to inherit so they read against the
+   inverted background. Some AG Grid rules set explicit colors on text /
+   icon spans that would otherwise override our parent color. */
+.ag-theme-alpine .ag-header-cell.col-highlighted .ag-header-cell-text,
+.ag-theme-alpine-dark .ag-header-cell.col-highlighted .ag-header-cell-text,
+.ag-theme-alpine .ag-header-cell.col-highlighted .ag-icon,
+.ag-theme-alpine-dark .ag-header-cell.col-highlighted .ag-icon {
+  color: inherit !important;
+}
+
+/* Click-highlight color classes — applied to .ag-row via getRowClass.
+   Each color uses rgba alpha 0.45 to match the M3 sticky highlight. */
+.ag-theme-alpine .ag-row.highlight-yellow,
+.ag-theme-alpine-dark .ag-row.highlight-yellow {
+  background-color: rgba(255, 235, 100, 0.45) !important;
+}
+.ag-theme-alpine .ag-row.highlight-orange,
+.ag-theme-alpine-dark .ag-row.highlight-orange {
+  background-color: rgba(255, 165, 80, 0.45) !important;
+}
+.ag-theme-alpine .ag-row.highlight-red,
+.ag-theme-alpine-dark .ag-row.highlight-red {
+  background-color: rgba(255, 100, 100, 0.45) !important;
+}
+.ag-theme-alpine .ag-row.highlight-pink,
+.ag-theme-alpine-dark .ag-row.highlight-pink {
+  background-color: rgba(255, 130, 200, 0.45) !important;
+}
+.ag-theme-alpine .ag-row.highlight-purple,
+.ag-theme-alpine-dark .ag-row.highlight-purple {
+  background-color: rgba(180, 120, 230, 0.45) !important;
+}
+.ag-theme-alpine .ag-row.highlight-blue,
+.ag-theme-alpine-dark .ag-row.highlight-blue {
+  background-color: rgba(100, 160, 255, 0.45) !important;
+}
+.ag-theme-alpine .ag-row.highlight-cyan,
+.ag-theme-alpine-dark .ag-row.highlight-cyan {
+  background-color: rgba(100, 220, 230, 0.45) !important;
+}
+.ag-theme-alpine .ag-row.highlight-green,
+.ag-theme-alpine-dark .ag-row.highlight-green {
+  background-color: rgba(120, 220, 130, 0.45) !important;
+}
+.ag-theme-alpine .ag-row.highlight-brown,
+.ag-theme-alpine-dark .ag-row.highlight-brown {
+  background-color: rgba(160, 100, 60, 0.5) !important;
+}
+
+/* Highlight-mode OFF: Sheets/Excel-style cell selection. In-cell text
+   selection is intentionally disabled (enableCellTextSelection:false) in
+   favour of selecting whole cells; the cell cursor signals "click selects the
+   cell". Drag or shift-click selects a rectangular block (.sf-cell-selected),
+   and Ctrl/Cmd+C copies it. */
+:root[data-highlight-mode="off"] .ag-cell {
+  cursor: cell;
+}
+
+/* The selected rectangle. A translucent accent so the selection reads clearly
+   over plain cells AND over conditional-formatting row colors (which sit on
+   the row beneath, showing through the alpha). Works in alpine + alpine-dark.
+   The clicked/active cell also keeps AG Grid's native .ag-cell-focus border,
+   which reads as the spreadsheet "active cell". */
+.ag-theme-alpine .ag-cell.sf-cell-selected,
+.ag-theme-alpine-dark .ag-cell.sf-cell-selected {
+  background-color: rgba(56, 132, 255, 0.22) !important;
+}
+
+/* The active cell within a selection — the anchor and the keyboard cursor.
+   Replaces AG Grid's native focus border (suppressed via suppressCellFocus) so
+   the cursor can never drift outside the selection: arrow keys move THIS, and
+   it always sits inside the selected block. Inset box-shadow = no layout shift. */
+.ag-theme-alpine .ag-cell.sf-cell-active,
+.ag-theme-alpine-dark .ag-cell.sf-cell-active {
+  box-shadow: inset 0 0 0 2px rgba(56, 132, 255, 0.9);
+}
+
+/* Double-click text overlay: a read-only <input> placed over a cell so the FULL
+   value can be selected/copied — long values scroll horizontally as you drag,
+   which a clipped cell can't. Mounted on <body>, positioned via inline fixed
+   coords; font / padding / text color are copied from the cell inline. The
+   background uses the app theme var (--theme-bg) so it follows the light/dark
+   toggle — NOT VS Code's theme, which can differ. Blue border = active overlay. */
+.sf-cell-text-overlay {
+  position: fixed;
+  z-index: 100;
+  box-sizing: border-box;
+  margin: 0;
+  border: 2px solid rgba(56, 132, 255, 0.9);
+  border-radius: 0;
+  outline: none;
+  background: var(--theme-bg, #fff);
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* Spreadsheet-like UI: NOTHING is text-selectable by default. A browser
+   "Select all" (Ctrl+A) only ever acts on grid cells via our handler, and no
+   chrome — footer, headers, toolbar, menus, popovers (export / color / theme /
+   columns / zoom / context), tooltips — can ever show a stray text selection.
+   Grid cells are already non-selectable (enableCellTextSelection:false). This
+   covers <body> so it reaches the menus/popovers that mount outside #root.
+   Selection is re-enabled below ONLY for genuine copyable content + inputs. */
+body {
+  user-select: none;
+  -webkit-user-select: none;
+}
+/* Real, copyable content and editable fields: form inputs, the Monaco rule
+   editor, the error / status banners (so a BigQuery error stays copyable), and
+   the nested-value popover (so a struct / array / JSON value can be copied). */
+input,
+textarea,
+.monaco-editor,
+.error-banner,
+.status-banner,
+.nested-cell-popover {
+  user-select: text;
+  -webkit-user-select: text;
+}
+/* Form controls' UA stylesheet re-enables selection on their own text (e.g.
+   the page-size dropdown), and the AG Grid tooltip ships its own styles — pin
+   both back to non-selectable. */
+select,
+.ag-tooltip {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+/* Apple/iOS-style highlight-mode toggle */
+.highlight-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.highlight-toggle-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+}
+
+.highlight-toggle-track {
+  position: relative;
+  display: inline-block;
+  width: 32px;
+  height: 18px;
+  background: var(--theme-border);
+  border-radius: 9px;
+  cursor: pointer;
+  transition: background-color 220ms ease;
+}
+
+.highlight-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  background: #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  transition: transform 220ms ease;
+}
+
+.highlight-toggle-input:checked + .highlight-toggle-track {
+  background: #34c759;
+}
+
+.highlight-toggle-input:checked + .highlight-toggle-track .highlight-toggle-thumb {
+  transform: translateX(14px);
+}
+
+.highlight-toggle-input:focus-visible + .highlight-toggle-track {
+  outline: 2px solid var(--theme-fg);
+  outline-offset: 2px;
+}
+
+.loading-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--theme-description-fg);
+}
+
+.spinner-row {
+  display: flex;
+  align-items: center;
+}
+
+.cancel-btn {
+  background: var(--theme-button-bg);
+  color: var(--theme-button-fg);
+  border: 1px solid var(--theme-border);
+  border-radius: 6px;
+  padding: 4px 14px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--vscode-font-size);
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.cancel-btn:hover:not(:disabled) {
+  background: var(--theme-button-hover);
+}
+
+.cancel-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* Footer "clear all filters" button. Funnel-with-slash icon. Hidden by
+   default — only appears when at least one column filter is active,
+   driven by the `.hidden` class toggle on updateClearFiltersButton(). */
+.clear-filters-btn {
+  background: var(--theme-button-bg);
+  color: var(--theme-button-fg);
+  border: 1px solid var(--theme-border);
+  border-radius: 6px;
+  padding: 2px;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--vscode-font-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.clear-filters-btn:hover {
+  background: var(--theme-button-hover);
+}
+
+.clear-filters-btn svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+.clear-filters-btn.hidden {
+  display: none;
+}
+
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 8px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.error-banner {
+  background: var(--theme-error-bg);
+  color: var(--theme-error-fg);
+  border-bottom: 1px solid var(--theme-error-border);
+  padding: 8px 12px;
+}
+
+.error-banner pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: var(--vscode-editor-font-family, monospace);
+  font-size: var(--vscode-editor-font-size, 12px);
+}
+
+.grid-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.grid-host {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+}
+
+/* During mount the grid is hidden (visibility:hidden) while column widths,
+   sort, scroll, and page are restored. Killing AG Grid's transitions for
+   this window makes the restoration instantaneous, so when the grid is
+   revealed the user never sees columns slide in from their default widths
+   to the restored ones. The class is removed one frame after reveal, so
+   normal post-mount interactions (zoom, resize) animate as usual. */
+.grid-host.grid-initializing * {
+  transition: none !important;
+  animation: none !important;
+}
+
+.grid-footer {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 4px 12px;
+  border-top: 1px solid var(--theme-border);
+  background: var(--theme-bg);
+  font-size: var(--vscode-font-size);
+  color: var(--theme-fg);
+}
+
+.grid-footer label {
+  color: var(--theme-fg);
+}
+
+.grid-footer select {
+  background: var(--theme-dropdown-bg);
+  color: var(--theme-dropdown-fg);
+  border: 1px solid var(--theme-dropdown-border);
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-family: inherit;
+  font-size: var(--vscode-font-size);
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.grid-footer select:hover {
+  background: var(--theme-button-hover);
+}
+
+.grid-footer .row-count {
+  color: var(--theme-description-fg);
+  margin-left: auto;
+}
+
+/* Filtered count: "1,050 / 5,108 rows" — matched count brightened + bolded,
+   the " / total rows" remainder stays in the muted .row-count color. */
+.grid-footer .row-count .rc-matched {
+  color: var(--theme-fg);
+  font-weight: 600;
+}
+
+.grid-footer .row-count .rc-sep {
+  margin: 0 0.15em;
+  opacity: 0.7;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pag-btn {
+  background: var(--theme-button-bg);
+  color: var(--theme-button-fg);
+  border: 1px solid var(--theme-border);
+  border-radius: 6px;
+  padding: 3px 10px;
+  cursor: pointer;
+  font-family: var(--vscode-editor-font-family, monospace);
+  font-size: var(--vscode-font-size);
+  min-width: 26px;
+  line-height: 1;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.pag-btn:hover:not(:disabled) {
+  background: var(--theme-button-hover);
+}
+
+.pag-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.page-indicator {
+  color: var(--theme-fg);
+  padding: 0 8px;
+  white-space: nowrap;
+}
+
+.page-size-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.page-size-group label {
+  color: var(--theme-description-fg);
+}
+
+.render-mode-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.render-mode-btn {
+  background: var(--theme-button-bg);
+  color: var(--theme-button-fg);
+  border: 1px solid var(--theme-border);
+  border-radius: 6px;
+  padding: 2px;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--vscode-font-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.render-mode-btn:hover {
+  background: var(--theme-button-hover);
+}
+
+.render-mode-btn svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+.theme-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.theme-toggle-btn {
+  background: var(--theme-button-bg);
+  color: var(--theme-button-fg);
+  border: 1px solid var(--theme-border);
+  border-radius: 6px;
+  padding: 2px;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--vscode-font-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.theme-toggle-btn:hover {
+  background: var(--theme-button-hover);
+}
+
+.theme-toggle-btn svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+.theme-popover {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  right: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  min-width: 120px;
+  padding: 4px;
+  background: var(--theme-dropdown-bg);
+  border: 1px solid var(--theme-dropdown-border);
+  border-radius: 8px;
+  box-shadow: var(--theme-popover-shadow);
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  background: transparent;
+  color: var(--theme-fg);
+  border: 0;
+  border-radius: 5px;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--vscode-font-size);
+  transition: background-color 120ms ease;
+}
+
+.theme-option:hover {
+  background: var(--theme-toolbar-hover);
+}
+
+.theme-check {
+  width: 12px;
+  display: inline-block;
+  text-align: center;
+}
+
+/* Columns visibility — footer button + popover.
+   Same chrome as the theme toggle so the right cluster reads as a
+   consistent set of icon buttons. Popover anchors right-aligned and
+   expands upward like the others. */
+.columns-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.columns-toggle-btn {
+  background: var(--theme-button-bg);
+  color: var(--theme-button-fg);
+  border: 1px solid var(--theme-border);
+  border-radius: 6px;
+  padding: 2px;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--vscode-font-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.columns-toggle-btn:hover {
+  background: var(--theme-button-hover);
+}
+
+/* Owl-chibi has more internal detail (two eyes + shines + beak) than
+   the theme/zoom glyphs, so it benefits from filling more of the 26px
+   button. 20px is near-flush with the button border while keeping a
+   small breathing margin. */
+.columns-toggle-btn svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.columns-popover {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  right: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+  max-width: 320px;
+  padding: 4px;
+  background: var(--theme-dropdown-bg);
+  border: 1px solid var(--theme-dropdown-border);
+  border-radius: 8px;
+  box-shadow: var(--theme-popover-shadow);
+}
+
+.columns-show-all {
+  padding: 5px 10px;
+  background: transparent;
+  color: var(--theme-description-fg);
+  border: 0;
+  border-radius: 5px;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85em;
+  font-style: italic;
+  margin-bottom: 2px;
+  transition: background-color 120ms ease;
+}
+
+.columns-show-all:hover {
+  background: var(--theme-toolbar-hover);
+  color: var(--theme-fg);
+}
+
+.columns-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 280px;
+  overflow-y: auto;
+  /* Hairline separator above the list, matching the dropdown border. */
+  border-top: 1px solid var(--theme-dropdown-border);
+  padding-top: 2px;
+}
+
+.columns-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  background: transparent;
+  color: var(--theme-fg);
+  border: 0;
+  border-radius: 5px;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--vscode-font-size);
+  transition: background-color 120ms ease, opacity 120ms ease;
+}
+
+.columns-option:hover {
+  background: var(--theme-toolbar-hover);
+}
+
+/* Hidden columns: dim the row so it reads as "off" at a glance. The
+   checkmark slot empties when hidden, but the dim makes the state
+   readable without staring at the checkmark column. */
+.columns-option.hidden {
+  opacity: 0.5;
+}
+
+.columns-check {
+  width: 12px;
+  display: inline-block;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.columns-label {
+  flex: 1 1 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Right-click context menu on column headers. Position: fixed at the
+   mouse coordinates (set inline via JS). One item per row, mirrors the
+   dropdown chrome used by the theme / columns popovers. */
+.column-context-menu {
+  position: fixed;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  min-width: 140px;
+  padding: 4px;
+  background: var(--theme-dropdown-bg);
+  border: 1px solid var(--theme-dropdown-border);
+  border-radius: 6px;
+  box-shadow: var(--theme-popover-shadow);
+}
+
+.column-context-menu-item {
+  display: flex;
+  align-items: center;
+  padding: 5px 10px;
+  background: transparent;
+  color: var(--theme-fg);
+  border: 0;
+  border-radius: 4px;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--vscode-font-size);
+  transition: background-color 120ms ease;
+}
+
+.column-context-menu-item:hover {
+  background: var(--theme-toolbar-hover);
+}
+
+/* Sort submenu: a hover flyout to the right of the "Sort" item. Mirrors the
+   parent menu's look. Pure CSS — the submenu is a DOM child of the parent, so
+   hovering it keeps the parent :hover and the flyout stays open. */
+.column-context-submenu-parent {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.column-context-submenu-chevron {
+  margin-left: auto;
+  padding-left: 16px;
+  opacity: 0.6;
+}
+.column-context-submenu {
+  display: none;
+  position: absolute;
+  left: 100%;
+  top: 0;
+  flex-direction: column;
+  min-width: 140px;
+  padding: 4px;
+  background: var(--theme-dropdown-bg);
+  border: 1px solid var(--theme-dropdown-border);
+  border-radius: 6px;
+  box-shadow: var(--theme-popover-shadow);
+}
+.column-context-submenu-parent:hover .column-context-submenu {
+  display: flex;
+}
+/* When there isn't room on the right, openColumnContextMenu adds this class so
+   the flyout opens to the left of the Sort item instead of off-screen. */
+.column-context-submenu-parent.submenu-flip-left .column-context-submenu {
+  left: auto;
+  right: 100%;
+}
+
+/* Color picker — button + popover */
+.color-picker {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.color-picker-btn {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid var(--theme-border);
+  border-radius: 6px;
+  background: var(--theme-button-bg);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.color-picker-btn:hover {
+  background: var(--theme-button-hover);
+}
+
+.color-picker-btn .swatch-fill {
+  width: 16px;
+  height: 16px;
+  display: block;
+  border: 1px solid var(--theme-border);
+  border-radius: 3px;
+}
+
+.color-popover {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  z-index: 100;
+  display: grid;
+  grid-template-columns: repeat(5, 20px);
+  gap: 4px;
+  padding: 8px;
+  background: var(--theme-dropdown-bg);
+  border: 1px solid var(--theme-dropdown-border);
+  border-radius: 8px;
+  box-shadow: var(--theme-popover-shadow);
+}
+
+.color-popover .clear-all-row {
+  grid-column: 1 / -1;
+  margin-top: 2px;
+}
+
+.color-popover .clear-all-btn {
+  width: 100%;
+  background: var(--theme-button-bg);
+  color: var(--theme-button-fg);
+  border: 1px solid var(--theme-border);
+  border-radius: 6px;
+  padding: 5px 8px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--vscode-font-size);
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.color-popover .clear-all-btn:hover:not(:disabled) {
+  background: var(--theme-button-hover);
+}
+
+.color-popover .clear-all-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.color-swatch {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid var(--theme-border);
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-block;
+  transition: outline-color 120ms ease;
+}
+
+.color-swatch:hover {
+  outline: 1px solid var(--theme-fg);
+}
+
+.color-swatch.selected {
+  outline: 2px solid var(--theme-fg);
+  outline-offset: 1px;
+}
+
+.color-swatch.disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.color-swatch.disabled:hover {
+  outline: none;
+}
+
+.color-swatch.swatch-yellow { background-color: rgba(255, 235, 100, 0.45); }
+.color-swatch.swatch-orange { background-color: rgba(255, 165, 80, 0.45); }
+.color-swatch.swatch-red    { background-color: rgba(255, 100, 100, 0.45); }
+.color-swatch.swatch-pink   { background-color: rgba(255, 130, 200, 0.45); }
+.color-swatch.swatch-purple { background-color: rgba(180, 120, 230, 0.45); }
+.color-swatch.swatch-blue   { background-color: rgba(100, 160, 255, 0.45); }
+.color-swatch.swatch-cyan   { background-color: rgba(100, 220, 230, 0.45); }
+.color-swatch.swatch-green  { background-color: rgba(120, 220, 130, 0.45); }
+.color-swatch.swatch-brown  { background-color: rgba(160, 100, 60, 0.5); }
+
+.color-swatch.swatch-none {
+  background:
+    linear-gradient(
+      to top right,
+      transparent calc(50% - 1px),
+      #c0392b calc(50% - 1px),
+      #c0392b calc(50% + 1px),
+      transparent calc(50% + 1px)
+    ),
+    var(--theme-bg);
+}
+
+/* Null cells — applied to scalar cells via cellClassRules and to the inner
+   preview span of nested cells when value is nullish. Italic + muted carries
+   the distinction from empty string / "null" string. */
+.ag-cell.null-cell,
+.null-cell {
+  font-style: italic;
+  color: var(--theme-description-fg);
+}
+
+/* Nested cells (struct / json / array / bytes) — left-aligned preview that
+   overrides the default right-align rule for AG Grid cells. */
+.ag-theme-alpine .ag-cell.nested-cell,
+.ag-theme-alpine-dark .ag-cell.nested-cell {
+  text-align: left;
+  justify-content: flex-start;
+}
+
+.ag-theme-alpine .ag-cell.nested-cell .ag-cell-value,
+.ag-theme-alpine-dark .ag-cell.nested-cell .ag-cell-value {
+  text-align: left;
+}
+
+/* Nested column headers — flip the global row-reverse so the label sits on
+   the LEFT (flush with the inline-table content below) and the menu icon ends
+   up on the right. Scalar columns keep the original M3 right-aligned layout. */
+.ag-theme-alpine .ag-header-cell.nested-header .ag-cell-label-container,
+.ag-theme-alpine-dark .ag-header-cell.nested-header .ag-cell-label-container {
+  flex-direction: row !important;
+  justify-content: space-between !important;
+}
+
+.ag-theme-alpine .ag-header-cell.nested-header .ag-header-cell-label,
+.ag-theme-alpine-dark .ag-header-cell.nested-header .ag-header-cell-label {
+  flex: 0 1 auto !important;
+  flex-direction: row !important;
+  justify-content: flex-start !important;
+}
+
+.nested-cell-preview {
+  display: block;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  background: transparent;
+  text-align: left;
+  font-family: var(--vscode-editor-font-family, monospace);
+  font-size: var(--vscode-font-size);
+}
+
+.nested-cell-preview:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--theme-description-fg);
+  text-underline-offset: 2px;
+}
+
+.nested-cell-preview.nested-bytes {
+  font-family: var(--vscode-editor-font-family, monospace);
+  letter-spacing: 0.02em;
+}
+
+/* Nested-cell popover (floating; position:fixed set inline by opener) */
+.nested-cell-popover {
+  z-index: 1000;
+  background: var(--theme-dropdown-bg);
+  color: var(--theme-dropdown-fg);
+  border: 1px solid var(--theme-dropdown-border);
+  border-radius: 8px;
+  box-shadow: var(--theme-popover-shadow);
+  padding: 10px;
+  min-width: 200px;
+  max-width: min(640px, calc(100vw - 24px));
+  overflow: auto;
+  font-family: var(--vscode-editor-font-family, monospace);
+  font-size: var(--vscode-editor-font-size, var(--vscode-font-size));
+}
+
+.popover-pre {
+  margin: 0;
+  white-space: pre;
+  font-family: inherit;
+  font-size: inherit;
+  color: var(--theme-dropdown-fg);
+}
+
+.popover-section-header {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--theme-description-fg);
+  margin: 6px 0 4px;
+}
+
+.popover-section-header:first-child {
+  margin-top: 0;
+}
+
+.nested-popover-bytes .popover-pre {
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+
+/* Inline ARRAY<STRUCT> mini-table — BQ-console style:
+   one row per array element, one column per struct field. Caps at ~240px tall
+   with scroll so very long arrays don't bloat the grid row. */
+.nested-array-table-wrap {
+  max-height: 240px;
+  overflow-y: auto;
+  overflow-x: auto;
+  background: transparent;
+  padding: 2px 0;
+}
+
+.nested-array-table {
+  border-collapse: collapse;
+  width: max-content;
+  max-width: 100%;
+  font-family: var(--vscode-editor-font-family, monospace);
+  font-size: var(--vscode-font-size);
+  background: transparent;
+}
+
+.nested-array-table thead th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--theme-description-fg);
+  border-bottom: 1px solid var(--theme-border);
+  padding: 2px 8px 2px 4px;
+  white-space: nowrap;
+  background: transparent;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.nested-array-table tbody td {
+  padding: 1px 8px 1px 4px;
+  border-bottom: 1px solid var(--theme-border);
+  white-space: nowrap;
+  vertical-align: top;
+  text-align: left;
+  background: transparent;
+}
+
+.nested-array-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.nested-array-table tbody td.numeric {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.nested-array-table tbody td.null-cell {
+  font-style: italic;
+  color: var(--theme-description-fg);
+}
+
+.nested-array-table tbody td.nested-ref {
+  color: var(--theme-description-fg);
+}
+
+/* Inner `[…N]` / `{…}` references inside an inline table that have non-empty
+   content become click-to-popover (added via the `.clickable-nested-ref`
+   marker class). Mirror the top-level nested-cell-preview hover affordance. */
+.nested-array-table tbody td.clickable-nested-ref,
+.nested-struct-table td.value.clickable-nested-ref {
+  cursor: pointer;
+}
+
+.nested-array-table tbody td.clickable-nested-ref:hover,
+.nested-struct-table td.value.clickable-nested-ref:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--theme-description-fg);
+  text-underline-offset: 2px;
+}
+
+/* When a row is highlighted, the array-table inside paints transparent so the
+   row color shows through but the header/body separators stay visible. */
+.ag-row[class*="highlight-"] .nested-array-table thead th {
+  background: transparent;
+}
+
+/* Inline STRUCT / JSON mini-table — 2-column key/value layout, dot-notation
+   for nested struct fields. Same height cap + scroll as the array table. */
+.nested-struct-table-wrap {
+  max-height: 240px;
+  overflow-y: auto;
+  overflow-x: auto;
+  background: transparent;
+  padding: 2px 0;
+}
+
+.nested-struct-table {
+  border-collapse: collapse;
+  width: max-content;
+  max-width: 100%;
+  font-family: var(--vscode-editor-font-family, monospace);
+  font-size: var(--vscode-font-size);
+  background: transparent;
+}
+
+.nested-struct-table td {
+  padding: 1px 8px 1px 4px;
+  border-bottom: 1px solid var(--theme-border);
+  white-space: nowrap;
+  vertical-align: top;
+  background: transparent;
+}
+
+.nested-struct-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.nested-struct-table td.key {
+  font-weight: 600;
+  color: var(--theme-description-fg);
+  text-align: left;
+}
+
+.nested-struct-table td.value {
+  text-align: left;
+}
+
+.nested-struct-table td.value.numeric {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.nested-struct-table td.value.null-cell {
+  font-style: italic;
+  color: var(--theme-description-fg);
+}
+
+.nested-struct-table td.value.nested-ref {
+  color: var(--theme-description-fg);
+}
+
+/* ===== M7 multi-statement: overview table + drill-in ===== */
+
+.multi-overview {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 12px 4px;
+  overflow: auto;
+}
+
+.multi-overview-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--theme-border);
+  margin-bottom: 12px;
+}
+
+.multi-overview-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.multi-overview-summary {
+  color: var(--theme-description-fg);
+  font-size: 12px;
+}
+
+.multi-overview-title {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--theme-fg);
+}
+
+.multi-overview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.multi-overview-table thead th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--theme-description-fg);
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--theme-border);
+  background: transparent;
+}
+
+.multi-overview-table tbody tr {
+  cursor: pointer;
+  border-bottom: 1px solid var(--theme-border);
+}
+
+.multi-overview-table tbody tr:hover {
+  background: var(--theme-toolbar-hover);
+}
+
+.multi-overview-table td {
+  padding: 8px;
+  vertical-align: middle;
+}
+
+.multi-overview-table .status-cell {
+  width: 24px;
+}
+
+.multi-overview-table .stmt-cell {
+  width: 56px;
+  font-family: var(--vscode-editor-font-family, monospace);
+  color: var(--theme-description-fg);
+}
+
+.multi-overview-table .sql-cell {
+  font-family: var(--vscode-editor-font-family, monospace);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 0;
+}
+
+.multi-overview-table .sql-cell-empty {
+  color: var(--theme-description-fg);
+  font-style: italic;
+}
+
+.multi-overview-table .result-cell {
+  width: 140px;
+  color: var(--theme-fg);
+}
+
+.multi-overview-table .action-cell {
+  width: 110px;
+  text-align: right;
+}
+
+.view-results-link {
+  background: transparent;
+  border: none;
+  color: var(--vscode-textLink-foreground, #3794ff);
+  cursor: pointer;
+  font: inherit;
+  padding: 2px 4px;
+}
+
+.view-results-link:hover {
+  text-decoration: underline;
+}
+
+/* Status glyphs */
+.status-glyph {
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.status-glyph-ok {
+  color: #1a8a3a;
+}
+
+.status-glyph-error {
+  color: #c4314b;
+}
+
+.status-glyph-cancelled {
+  color: var(--theme-description-fg);
+}
+
+:root[data-theme="dark"] .status-glyph-ok {
+  color: #4caf50;
+}
+
+:root[data-theme="dark"] .status-glyph-error {
+  color: #f48fb1;
+}
+
+/* Drill-in: breadcrumb + back link */
+.statement-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.statement-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--theme-border);
+  font-size: 12px;
+}
+
+.back-link {
+  background: transparent;
+  border: none;
+  color: var(--vscode-textLink-foreground, #3794ff);
+  cursor: pointer;
+  font: inherit;
+  padding: 2px 4px;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+.statement-label {
+  color: var(--theme-description-fg);
+}
+
+/* Status banners for non-SELECT statement drill-ins (DDL / DML / script /
+   cancelled). Error reuses the existing .error-banner. */
+.status-banner {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  color: var(--theme-fg);
+  font-size: 13px;
+}
+
+.dml-banner,
+.ddl-banner,
+.script-banner {
+  color: var(--theme-fg);
+}
+
+.cancelled-banner {
+  color: var(--theme-description-fg);
+  font-style: italic;
+}
+
+/* M8: conditional formatting (rules) — gutter mark, button, popover, modal,
+   inline help panel. Rule colors reuse the .highlight-<color> classes
+   already defined above; the gutter override is a separate class set on
+   the row-number cell when a rule paints the data cells and the user has
+   also clicked the row (small "manual marker" square per locked spec). */
+.ag-theme-alpine .ag-cell.gutter-mark,
+.ag-theme-alpine-dark .ag-cell.gutter-mark {
+  position: relative;
+}
+.ag-theme-alpine .ag-cell.gutter-mark::before,
+.ag-theme-alpine-dark .ag-cell.gutter-mark::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 3px;
+  pointer-events: none;
+}
+.gutter-mark-yellow::before { background-color: rgba(255, 235, 100, 0.85); }
+.gutter-mark-orange::before { background-color: rgba(255, 165, 80, 0.85); }
+.gutter-mark-red::before    { background-color: rgba(255, 100, 100, 0.85); }
+.gutter-mark-pink::before   { background-color: rgba(255, 130, 200, 0.85); }
+.gutter-mark-purple::before { background-color: rgba(180, 120, 230, 0.85); }
+.gutter-mark-blue::before   { background-color: rgba(100, 160, 255, 0.85); }
+.gutter-mark-cyan::before   { background-color: rgba(100, 220, 230, 0.85); }
+.gutter-mark-green::before  { background-color: rgba(120, 220, 130, 0.85); }
+.gutter-mark-brown::before  { background-color: rgba(160, 100, 60, 0.9); }
+
+.cond-fmt {
+  display: inline-flex;
+  align-items: center;
+}
+.cond-fmt-btn {
+  position: relative;
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* Subtle raised look: faint inner highlight + soft outer shadow so the
+     three-color icon feels like it sits on a chip rather than a flat bg. */
+  background: var(--theme-toolbar-hover);
+  color: var(--theme-fg);
+  border: 1px solid var(--theme-border);
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 1px 2px rgba(0, 0, 0, 0.18);
+  transition: background-color 120ms ease, border-color 120ms ease,
+    transform 120ms ease, box-shadow 120ms ease;
+}
+.cond-fmt-btn:hover {
+  background-color: var(--theme-button-hover, var(--theme-toolbar-hover));
+  border-color: var(--theme-button-bg, var(--theme-border));
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 2px 5px rgba(0, 0, 0, 0.25);
+}
+.cond-fmt-btn:active {
+  transform: translateY(0);
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.18);
+}
+.cond-fmt-badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  border-radius: 7px;
+  background: var(--theme-button-bg, #3794ff);
+  color: var(--theme-button-fg, #fff);
+  font-size: 9px;
+  line-height: 14px;
+  text-align: center;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+/* Pin toggle — same 26×26 chip as the other footer buttons. Unpinned: the
+   subdued footer-fg colour (like the filter funnel). Pinned: amber accent
+   glyph so it pops. The .pinned class also fills the SVG via currentColor. */
+.pin-toggle {
+  display: inline-flex;
+  align-items: center;
+}
+.pin-toggle-btn {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--theme-button-bg);
+  color: var(--theme-description-fg);
+  border: 1px solid var(--theme-border);
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--vscode-font-size);
+  transition: background-color 120ms ease, border-color 120ms ease,
+    color 120ms ease;
+}
+.pin-toggle-btn:hover {
+  background: var(--theme-button-hover);
+  color: var(--theme-fg);
+}
+.pin-toggle-btn.pinned {
+  color: var(--pin-accent-pinned);
+  border-color: var(--pin-accent-pinned);
+}
+.pin-toggle-btn.pinned:hover {
+  color: var(--pin-accent-pinned);
+}
+.pin-toggle-btn svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+/* Sticky pin-mismatch banner — soft amber strip above the grid. Sits at the
+   top of the panel column; the grid scrolls internally so it never scrolls
+   away, and position: sticky pins it for any edge case where .content itself
+   scrolls. Not dismissible. */
+.pin-banner {
+  flex: 0 0 auto;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: var(--pin-banner-bg);
+  color: var(--pin-banner-fg);
+  border-bottom: 1px solid var(--pin-banner-border);
+  font-size: var(--vscode-font-size);
+  line-height: 1.3;
+}
+.pin-banner-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Defense-in-depth peripheral cue: a 2px dashed amber border across the top
+   of the grid container while a foreign file is focused. */
+.content.pin-mismatch .grid-wrap {
+  border-top: 2px dashed var(--pin-accent);
+}
+
+.cond-fmt-popover {
+  position: absolute;
+  bottom: 36px;
+  right: 0;
+  width: 360px;
+  max-height: 420px;
+  overflow: auto;
+  background: var(--theme-dropdown-bg);
+  color: var(--theme-dropdown-fg);
+  border: 1px solid var(--theme-dropdown-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 14px var(--theme-popover-shadow, rgba(0, 0, 0, 0.35));
+  padding: 10px;
+  z-index: 100;
+}
+.cond-fmt-header {
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: var(--theme-fg);
+}
+.cond-fmt-empty {
+  font-size: 12px;
+  color: var(--theme-description-fg);
+  padding: 6px 0 12px;
+}
+.cond-fmt-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cond-fmt-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  background: transparent;
+}
+.cond-fmt-row:hover {
+  background: var(--theme-toolbar-hover);
+}
+.cond-fmt-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1px solid var(--theme-border);
+  flex-shrink: 0;
+}
+.cond-fmt-swatch.swatch-yellow { background-color: rgba(255, 235, 100, 0.85); }
+.cond-fmt-swatch.swatch-orange { background-color: rgba(255, 165, 80, 0.85); }
+.cond-fmt-swatch.swatch-red    { background-color: rgba(255, 100, 100, 0.85); }
+.cond-fmt-swatch.swatch-pink   { background-color: rgba(255, 130, 200, 0.85); }
+.cond-fmt-swatch.swatch-purple { background-color: rgba(180, 120, 230, 0.85); }
+.cond-fmt-swatch.swatch-blue   { background-color: rgba(100, 160, 255, 0.85); }
+.cond-fmt-swatch.swatch-cyan   { background-color: rgba(100, 220, 230, 0.85); }
+.cond-fmt-swatch.swatch-green  { background-color: rgba(120, 220, 130, 0.85); }
+.cond-fmt-swatch.swatch-brown  { background-color: rgba(160, 100, 60, 0.9); }
+.cond-fmt-formula {
+  flex: 1;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--theme-fg);
+}
+.cond-fmt-warning {
+  color: #d4a017;
+  font-size: 13px;
+  cursor: help;
+}
+.cond-fmt-row-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--theme-fg);
+  padding: 2px 6px;
+  font-size: 11px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.cond-fmt-row-btn:hover {
+  background: var(--theme-toolbar-hover);
+  border-color: var(--theme-border);
+}
+.cond-fmt-row-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.cond-fmt-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--theme-border);
+}
+.cond-fmt-add {
+  flex: 1;
+  background: var(--theme-button-bg, #3794ff);
+  color: var(--theme-button-fg, #fff);
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.cond-fmt-add:hover {
+  background: var(--theme-button-hover, #2c7bd6);
+}
+.cond-fmt-clear {
+  background: transparent;
+  color: var(--theme-error-fg, #f48771);
+  border: 1px solid var(--theme-error-border, #6b2727);
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.cond-fmt-clear:hover {
+  background: var(--theme-error-bg, rgba(244, 135, 113, 0.12));
+}
+
+/* Modal — full-viewport backdrop + card with Monaco editor.
+   Sizing strategy for the very-short-panel case (VS Code result panel
+   dragged narrow):
+     - Modal has min-height + max-height so it always fits and never
+       hides the title / action buttons.
+     - The editor host is the only flex-shrinkable element; title,
+       status line, color row, and the bottom action bar are pinned
+       (flex-shrink: 0) so they remain visible.
+     - When even the minimum doesn't fit, the modal pins to the top of
+       the viewport and clips its bottom — the user can scroll or
+       resize the panel; never silently loses the action bar. */
+.cond-fmt-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 16px;
+  overflow: auto;
+  z-index: 1000;
+}
+.cond-fmt-modal {
+  width: 560px;
+  max-width: 90vw;
+  /* Heights: shrink down to MIN before clipping; never exceed viewport. */
+  min-height: 240px;
+  max-height: calc(100vh - 32px);
+  background: var(--theme-bg);
+  color: var(--theme-fg);
+  border: 1px solid var(--theme-border);
+  border-radius: 10px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  /* Center vertically when the modal IS smaller than the backdrop — done
+     via auto-margin so a too-tall modal still flushes to the backdrop top. */
+  margin-top: auto;
+  margin-bottom: auto;
+}
+.cond-fmt-modal.with-help {
+  width: 880px;
+  flex-direction: row;
+  align-items: stretch;
+}
+.cond-fmt-modal.with-help > .cond-fmt-help-panel {
+  flex: 1;
+  border-left: 1px solid var(--theme-border);
+  padding-left: 14px;
+  max-height: 70vh;
+  overflow: auto;
+}
+.cond-fmt-modal.with-help > .cond-fmt-modal-title,
+.cond-fmt-modal.with-help > .cond-fmt-editor-host,
+.cond-fmt-modal.with-help > .cond-fmt-modal-status,
+.cond-fmt-modal.with-help > .cond-fmt-color-row,
+.cond-fmt-modal.with-help > .cond-fmt-modal-actions {
+  /* Stack the left-side fields vertically when help is open. */
+}
+.cond-fmt-modal-title {
+  font-weight: 600;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.cond-fmt-drag-handle {
+  cursor: grab;
+  user-select: none;
+  /* visual affordance: small lift on hover */
+  padding: 4px 6px;
+  margin: -4px -6px 0 -6px;
+  border-radius: 6px;
+}
+.cond-fmt-drag-handle:hover {
+  background: var(--theme-toolbar-hover);
+}
+.cond-fmt-drag-handle.dragging {
+  cursor: grabbing;
+  background: var(--theme-toolbar-hover);
+}
+.cond-fmt-editor-host {
+  /* Default height 140px, but flex-shrinks down to min-height so the
+     fixed bars below stay on screen when the panel is tight. Monaco's
+     automaticLayout option reflows as the host resizes. */
+  flex: 1 1 140px;
+  min-height: 72px;
+  border: 1px solid var(--theme-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.cond-fmt-modal-status {
+  font-size: 12px;
+  color: var(--theme-description-fg);
+  min-height: 18px;
+  flex-shrink: 0;
+}
+.cond-fmt-modal-status.muted { color: var(--theme-description-fg); }
+.cond-fmt-modal-status.error { color: var(--theme-error-fg, #f48771); }
+.cond-fmt-modal-status.warning { color: #d4a017; }
+.cond-fmt-color-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  /* Extra vertical breathing room so the larger selected swatch
+     doesn't get clipped against the modal's other rows. */
+  padding: 6px 0;
+  flex-shrink: 0;
+}
+.cond-fmt-color-label {
+  font-size: 12px;
+  color: var(--theme-description-fg);
+  margin-right: 4px;
+}
+.cond-fmt-color-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  border: 1px solid var(--theme-border);
+  cursor: pointer;
+  /* Resting state has a subtle drop shadow so the swatches feel like
+     physical chips rather than flat squares. */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 1px 1px rgba(0, 0, 0, 0.15);
+  transition: transform 140ms ease, box-shadow 140ms ease,
+    border-color 140ms ease;
+}
+.cond-fmt-color-swatch:hover:not(.selected) {
+  transform: translateY(-1px) scale(1.05);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 2px 4px rgba(0, 0, 0, 0.25);
+}
+.cond-fmt-color-swatch.selected {
+  /* The picked swatch grows clearly larger AND lifts off the row with a
+     stronger drop shadow + double-ring outline. Three independent cues so
+     it's unmistakable on any background. */
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  border-color: transparent;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 0 0 2px var(--theme-bg),
+    0 0 0 4px var(--theme-button-bg, #3794ff),
+    0 4px 10px rgba(0, 0, 0, 0.35);
+  transform: translateY(-2px);
+  position: relative;
+  z-index: 1;
+}
+.cond-fmt-color-swatch.swatch-yellow { background-color: rgba(255, 235, 100, 0.85); }
+.cond-fmt-color-swatch.swatch-orange { background-color: rgba(255, 165, 80, 0.85); }
+.cond-fmt-color-swatch.swatch-red    { background-color: rgba(255, 100, 100, 0.85); }
+.cond-fmt-color-swatch.swatch-pink   { background-color: rgba(255, 130, 200, 0.85); }
+.cond-fmt-color-swatch.swatch-purple { background-color: rgba(180, 120, 230, 0.85); }
+.cond-fmt-color-swatch.swatch-blue   { background-color: rgba(100, 160, 255, 0.85); }
+.cond-fmt-color-swatch.swatch-cyan   { background-color: rgba(100, 220, 230, 0.85); }
+.cond-fmt-color-swatch.swatch-green  { background-color: rgba(120, 220, 130, 0.85); }
+.cond-fmt-color-swatch.swatch-brown  { background-color: rgba(160, 100, 60, 0.9); }
+.cond-fmt-modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.cond-fmt-help-btn,
+.cond-fmt-cancel,
+.cond-fmt-save {
+  padding: 5px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+  border: 1px solid var(--theme-border);
+  background: transparent;
+  color: var(--theme-fg);
+}
+.cond-fmt-save {
+  background: var(--theme-button-bg, #3794ff);
+  color: var(--theme-button-fg, #fff);
+  border-color: transparent;
+}
+.cond-fmt-save:hover { background: var(--theme-button-hover, #2c7bd6); }
+.cond-fmt-save:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.cond-fmt-cancel:hover,
+.cond-fmt-help-btn:hover { background: var(--theme-toolbar-hover); }
+
+.cond-fmt-help-content { font-size: 12px; color: var(--theme-fg); }
+.cond-fmt-help-title { font-weight: 600; font-size: 13px; margin-bottom: 6px; }
+.cond-fmt-help-intro { color: var(--theme-description-fg); margin-bottom: 10px; }
+.cond-fmt-help-section { margin-bottom: 14px; }
+.cond-fmt-help-section-h {
+  font-weight: 600;
+  font-size: 12px;
+  margin-bottom: 4px;
+  color: var(--theme-fg);
+}
+.cond-fmt-help-para { margin-bottom: 4px; color: var(--theme-fg); }
+.cond-fmt-help-row { margin-bottom: 2px; }
+.cond-fmt-help-row code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  background: var(--theme-toolbar-hover);
+  padding: 0 4px;
+  border-radius: 3px;
+}
+.cond-fmt-help-card {
+  border: 1px solid var(--theme-border);
+  border-radius: 5px;
+  padding: 6px 8px;
+  margin-bottom: 6px;
+}
+.cond-fmt-help-card code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  color: var(--theme-fg);
+}
+.cond-fmt-help-desc { margin: 4px 0; color: var(--theme-fg); }
+.cond-fmt-help-example { color: var(--theme-description-fg); font-size: 11px; }
+.cond-fmt-help-example-lbl { font-style: italic; }
+
+/* ===== M9: Sheets-style column filter popup ===== */
+
+/* Strip AG Grid's own filter-popup chrome (background / border / padding /
+   shadow) — our root element is a full-viewport backdrop with its own
+   centered card, so the AG Grid wrapper should be invisible. */
+.ag-popup .ag-filter,
+.ag-theme-alpine .ag-filter,
+.ag-theme-alpine-dark .ag-filter {
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+/* Backdrop: fills the entire webview iframe (now maximized on first run
+   per autoSizePanelOnFirstRun). Position-fixed escapes the AG Grid
+   popup wrapper so the modal anchors to the iframe viewport. */
+.sheets-filter {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 9999 !important;
+  background: rgba(0, 0, 0, 0.45) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 16px;
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+}
+
+.sheets-filter .sf-card {
+  display: flex;
+  flex-direction: column;
+  width: 420px;
+  max-width: 90vw;
+  max-height: calc(100vh - 32px);
+  background: var(--theme-dropdown-bg);
+  color: var(--theme-dropdown-fg);
+  border: 1px solid var(--theme-border);
+  border-radius: 10px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.sheets-filter .sf-title {
+  flex-shrink: 0;
+  padding: 10px 14px;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--theme-fg);
+  border-bottom: 1px solid var(--theme-border);
+}
+
+.sf-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--theme-border);
+}
+
+.sf-tab {
+  flex: 1;
+  background: transparent;
+  color: var(--theme-description-fg);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  padding: 8px 10px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+}
+
+.sf-tab:hover {
+  background: var(--theme-toolbar-hover);
+}
+
+.sf-tab.active {
+  color: var(--theme-fg);
+  border-bottom-color: var(--vscode-textLink-foreground, #3794ff);
+  font-weight: 600;
+}
+
+.sf-tab-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.sf-pane {
+  display: none;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  padding: 10px;
+  gap: 8px;
+}
+
+.sf-pane.active {
+  display: flex;
+}
+
+/* Condition pane */
+.sf-cond-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.sf-cond-op {
+  background: var(--theme-dropdown-bg);
+  color: var(--theme-dropdown-fg);
+  /* Use the panel theme tokens (not --vscode-input-*) so these inputs
+     follow the in-panel theme toggle. The VS Code input tokens track the
+     editor's actual theme, which mismatches when the user sets the panel
+     to light while VS Code itself is dark (input stayed black-on-light). */
+  border: 1px solid var(--theme-dropdown-border);
+  border-radius: 5px;
+  padding: 4px 6px;
+  font: inherit;
+  font-size: 12px;
+}
+
+.sf-cond-val {
+  flex: 1 1 100px;
+  min-width: 60px;
+  background: var(--theme-dropdown-bg);
+  color: var(--theme-dropdown-fg);
+  border: 1px solid var(--theme-dropdown-border);
+  border-radius: 5px;
+  padding: 4px 6px;
+  font: inherit;
+  font-size: 12px;
+}
+
+.sf-cond-val:focus,
+.sf-cond-op:focus {
+  outline: none;
+  border-color: var(--vscode-focusBorder, var(--vscode-textLink-foreground, #3794ff));
+  box-shadow: 0 0 0 1px var(--vscode-focusBorder, var(--vscode-textLink-foreground, #3794ff));
+}
+
+.sf-cond-and {
+  color: var(--theme-description-fg);
+  font-size: 11px;
+  padding: 0 2px;
+}
+
+.sf-combinator-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.sf-combinator-label {
+  color: var(--theme-description-fg);
+  font-size: 11px;
+}
+
+.sf-combinator-btn {
+  background: var(--theme-button-bg);
+  color: var(--theme-button-fg);
+  border: 1px solid var(--theme-border);
+  border-radius: 5px;
+  padding: 2px 8px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+}
+
+.sf-combinator-btn:hover {
+  background: var(--theme-button-hover);
+}
+
+.sf-combinator-btn.active {
+  background: var(--vscode-textLink-foreground, #3794ff);
+  color: #fff;
+  border-color: transparent;
+}
+
+.sf-add-second,
+.sf-remove-second {
+  background: transparent;
+  color: var(--vscode-textLink-foreground, #3794ff);
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  margin-left: auto;
+  padding: 2px 4px;
+}
+
+.sf-add-second:hover,
+.sf-remove-second:hover {
+  text-decoration: underline;
+}
+
+/* Values pane */
+.sf-values-search {
+  flex-shrink: 0;
+  background: var(--theme-dropdown-bg);
+  color: var(--theme-dropdown-fg);
+  border: 1px solid var(--theme-dropdown-border);
+  border-radius: 5px;
+  padding: 4px 8px;
+  font: inherit;
+  font-size: 12px;
+}
+
+.sf-values-search:focus {
+  outline: none;
+  border-color: var(--vscode-focusBorder, var(--vscode-textLink-foreground, #3794ff));
+  box-shadow: 0 0 0 1px var(--vscode-focusBorder, var(--vscode-textLink-foreground, #3794ff));
+}
+
+.sf-values-bulk {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--theme-description-fg);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.sf-bulk-link {
+  background: transparent;
+  color: var(--vscode-textLink-foreground, #3794ff);
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  padding: 0 2px;
+}
+
+.sf-bulk-link:hover {
+  text-decoration: underline;
+}
+
+.sf-values-list-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid var(--theme-border);
+  border-radius: 5px;
+  background: var(--theme-bg);
+}
+
+.sf-values-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.sf-value-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 8px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--theme-fg);
+  user-select: none;
+}
+
+.sf-value-row:hover {
+  background: var(--theme-toolbar-hover);
+}
+
+.sf-value-checkbox {
+  flex-shrink: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.sf-value-text {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sf-value-blanks {
+  font-style: italic;
+  color: var(--theme-description-fg);
+}
+
+.sf-load-more {
+  flex-shrink: 0;
+  background: transparent;
+  color: var(--vscode-textLink-foreground, #3794ff);
+  border: 1px dashed var(--theme-border);
+  border-radius: 5px;
+  padding: 5px 8px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+}
+
+.sf-load-more:hover {
+  background: var(--theme-toolbar-hover);
+}
+
+.sf-values-empty {
+  flex-shrink: 0;
+  padding: 8px;
+  font-size: 12px;
+  color: var(--theme-description-fg);
+  font-style: italic;
+  text-align: center;
+}
+
+/* Footer */
+.sf-footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-top: 1px solid var(--theme-border);
+  background: var(--theme-dropdown-bg);
+}
+
+.sf-clear,
+.sf-cancel,
+.sf-apply {
+  padding: 4px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  border: 1px solid var(--theme-border);
+  background: transparent;
+  color: var(--theme-fg);
+}
+
+.sf-clear {
+  color: var(--theme-error-fg, #f48771);
+  border-color: var(--theme-error-border, #6b2727);
+}
+
+.sf-clear:hover {
+  background: var(--theme-error-bg, rgba(244, 135, 113, 0.12));
+}
+
+.sf-cancel:hover {
+  background: var(--theme-toolbar-hover);
+}
+
+.sf-apply {
+  background: var(--vscode-textLink-foreground, #3794ff);
+  color: #fff;
+  border-color: transparent;
+}
+
+.sf-apply:hover {
+  filter: brightness(1.1);
+}
+
+/* ---- M10 export button + menu + footer status toast ---- */
+
+.export-btn-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.export-btn {
+  background: var(--theme-button-bg);
+  color: var(--theme-button-fg);
+  border: 1px solid var(--theme-border);
+  border-radius: 6px;
+  padding: 2px;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.export-btn:hover {
+  background: var(--theme-button-hover);
+}
+
+.export-btn svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+.export-menu {
+  /* Positioning is set inline by positionExportMenu() in JS — fixed
+     coords with viewport clamping. CSS defaults exist only as a fallback
+     in case JS positioning hasn't run yet. */
+  position: fixed;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  min-width: 220px;
+  max-width: 320px;
+  padding: 4px;
+  background: var(--theme-dropdown-bg);
+  border: 1px solid var(--theme-dropdown-border);
+  border-radius: 8px;
+  box-shadow: var(--theme-popover-shadow);
+}
+
+.export-menu-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  padding: 6px 10px;
+  background: transparent;
+  color: var(--theme-fg);
+  border: 0;
+  border-radius: 5px;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--vscode-font-size);
+  transition: background-color 120ms ease;
+}
+
+.export-menu-item:hover:not(.disabled) {
+  background: var(--theme-toolbar-hover);
+}
+
+.export-menu-item.disabled {
+  cursor: default;
+  opacity: 0.75;
+}
+
+.export-menu-label {
+  font-weight: 500;
+}
+
+.export-menu-sub {
+  font-size: calc(var(--vscode-font-size) - 1px);
+  color: var(--theme-description-fg);
+  white-space: normal;
+  line-height: 1.25;
+}
+
+.export-menu-item.disabled .export-menu-sub {
+  font-style: italic;
+}
+
+/* The footer is split into two clusters: frequently-used controls on the
+   left (color picker, highlight, pagination, page size, render mode,
+   conditional formatting), and rarely-used controls on the right (export,
+   theme, row count). The explicit wrapper + margin-left: auto guarantees
+   the right cluster hugs the right edge regardless of flex-gap behaviour. */
+.footer-right-cluster {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.export-status {
+  /* Absolute overlay so toast appearance/disappearance does NOT shift the
+     row counter to its right. Anchored above the footer, centered
+     horizontally — far enough from either edge that it never collides
+     with the left or right clusters. */
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 4px);
+  transform: translateX(-50%);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: calc(var(--vscode-font-size) - 1px);
+  color: var(--theme-description-fg);
+  background: var(--theme-dropdown-bg);
+  border: 1px solid var(--theme-dropdown-border);
+  box-shadow: var(--theme-popover-shadow);
+  opacity: 0;
+  transition: opacity 180ms ease;
+  pointer-events: none;
+  white-space: nowrap;
+  max-width: 360px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  z-index: 50;
+}
+
+.export-status.visible {
+  opacity: 1;
+}
+
+.export-status-ok {
+  color: var(--theme-fg);
+}
+
+.export-status-warn {
+  color: #c97d00;
+}
+
+.export-status-err {
+  color: var(--theme-error-fg, #be1100);
+}
+
+/* ---- M11 zoom button + popover ---- */
+
+.zoom-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.zoom-toggle-btn {
+  background: var(--theme-button-bg);
+  color: var(--theme-button-fg);
+  border: 1px solid var(--theme-border);
+  border-radius: 6px;
+  padding: 2px;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--vscode-font-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.zoom-toggle-btn:hover {
+  background: var(--theme-button-hover);
+}
+
+.zoom-toggle-btn svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+.zoom-popover {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  right: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 160px;
+  padding: 6px;
+  background: var(--theme-dropdown-bg);
+  border: 1px solid var(--theme-dropdown-border);
+  border-radius: 8px;
+  box-shadow: var(--theme-popover-shadow);
+}
+
+.zoom-popover-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.zoom-step-btn {
+  background: var(--theme-button-bg);
+  color: var(--theme-button-fg);
+  border: 1px solid var(--theme-border);
+  border-radius: 6px;
+  padding: 0;
+  width: 30px;
+  height: 28px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: calc(var(--vscode-font-size) + 2px);
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.zoom-step-btn:hover:not(:disabled) {
+  background: var(--theme-button-hover);
+}
+
+.zoom-step-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.zoom-popover-pct {
+  /* Manual integer input. type="text" with inputmode="numeric" because
+     type="number" lets users type 'e', '-', and '.' through; we want
+     digit-only with keystroke filtering in JS. */
+  flex: 1;
+  width: 0; /* lets flex grow; otherwise the input keeps its UA min-width */
+  min-width: 0;
+  text-align: center;
+  color: var(--theme-fg);
+  background: var(--theme-dropdown-bg);
+  border: 1px solid var(--theme-dropdown-border);
+  border-radius: 6px;
+  padding: 4px 6px;
+  font-family: inherit;
+  font-size: var(--vscode-font-size);
+  font-variant-numeric: tabular-nums;
+  outline: none;
+  transition: border-color 120ms ease, background-color 120ms ease;
+}
+
+.zoom-popover-pct:hover {
+  background: var(--theme-button-hover);
+}
+
+.zoom-popover-pct:focus {
+  border-color: var(--vscode-focusBorder, var(--theme-fg));
+  background: var(--theme-bg);
+}
+
+.zoom-reset-btn {
+  background: transparent;
+  color: var(--theme-fg);
+  border: 0;
+  border-radius: 5px;
+  padding: 5px 10px;
+  text-align: center;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--vscode-font-size);
+  transition: background-color 120ms ease;
+}
+
+.zoom-reset-btn:hover {
+  background: var(--theme-toolbar-hover);
+}
+
+/* ---- M11 execution-time indicator ----
+   Icon-only info badge in the footer's right cluster. No chip background
+   (per user preference) — depth comes from two stacked layers:
+     (a) ::before puddle — a translated/blurred radial gradient sitting
+         UNDER the icon. This is the bulk of the visible shadow because
+         it projects past the icon silhouette into a soft elliptical
+         blob (organic, no hard rectangle).
+     (b) drop-shadow stack on the SVG — thickens the icon silhouette so
+         the glyph itself has weight, not just a floating puddle.
+   Dark theme uses near-black at high alpha; light theme uses softer
+   alphas (dark glyphs on white naturally have more contrast). */
+.execution-time {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  cursor: help;
+  color: var(--theme-fg);
+  user-select: none;
+}
+
+.execution-time-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  overflow: visible;
+}
+
+.execution-time-icon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0) 75%);
+  transform: translateY(5px) scale(1.3, 0.8);
+  filter: blur(3px);
+}
+
+.execution-time-icon svg {
+  position: relative;
+  z-index: 1;
+  display: block;
+  overflow: visible;
+  filter:
+    drop-shadow(0 0 1.5px rgba(0, 0, 0, 0.95))
+    drop-shadow(0 3px 4px rgba(0, 0, 0, 0.85));
+}
+
+:root[data-theme="light"] .execution-time-icon::before {
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0) 75%);
+}
+
+:root[data-theme="light"] .execution-time-icon svg {
+  filter:
+    drop-shadow(0 0 1px rgba(0, 0, 0, 0.5))
+    drop-shadow(0 3px 4px rgba(0, 0, 0, 0.45));
+}
+
+/* ---- M11 per-statement timing annotation in M7 overview ---- */
+
+.stmt-time-annot {
+  color: var(--theme-description-fg);
+  font-variant-numeric: tabular-nums;
+  margin-left: 2px;
+}

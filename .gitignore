@@ -1,0 +1,14 @@
+node_modules/
+out/
+*.vsix
+*.zip
+.vscode-test/
+*.sql
+
+# Local-only dev artifacts — never published.
+.claude/
+session-notes/
+pre-publish-bugs.md
+doc_bq_ext.MD
+demo-queries/
+media/previews/
