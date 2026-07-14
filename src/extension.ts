@@ -114,15 +114,6 @@ export function activate(context: vscode.ExtensionContext): void {
     }),
   );
 
-  context.subscriptions.push(
-    vscode.workspace.onDidCreateFiles((event) => {
-      for (const uri of event.files) {
-        if (isSqlFileUri(uri)) {
-          void rulesStore.maybeInheritOnCreate(uri);
-        }
-      }
-    }),
-  );
 }
 
 export function deactivate(): void {

@@ -52,6 +52,18 @@ let modalEditor: FormulaEditorHandle | null = null;
 let modalEscHandler: ((e: KeyboardEvent) => void) | null = null;
 let helpPanelRef: HTMLDivElement | null = null;
 
+// Per-file modal memory. The modal belongs to exactly one file (URI key):
+// switching to another file hides it (state preserved) and returning re-shows
+// it exactly as left. `modalOwnerKey` is the file the mounted modal belongs to;
+// `modalSessions` holds each file's in-progress state so it survives hide/show.
+interface ModalSession {
+  existing: Rule | null; // the rule being edited (null = adding a new rule)
+  formula: string; // in-progress formula text
+  color: RuleColor; // selected color
+}
+let modalOwnerKey: string | null = null;
+const modalSessions = new Map<string, ModalSession>();
+
 export function isRulesModalOpen(): boolean {
   return modalRef !== null;
 }
@@ -333,7 +345,27 @@ function openRuleModal(
   callbacks: RulesUiCallbacks,
   existing: Rule | null,
 ): void {
-  closeRuleModal();
+  const owner = callbacks.getActiveUri();
+  if (!owner) return;
+  const session: ModalSession = {
+    existing,
+    formula: existing?.formula ?? '',
+    color: existing?.color ?? 'yellow',
+  };
+  modalSessions.set(owner, session);
+  mountModal(callbacks, session);
+}
+
+// Build and show the modal DOM for a session. Used both when the user first
+// opens it (openRuleModal) and when re-showing a preserved session on returning
+// to its file (syncRuleModalToActiveKey).
+function mountModal(
+  callbacks: RulesUiCallbacks,
+  session: ModalSession,
+): void {
+  dismountModal();
+  modalOwnerKey = callbacks.getActiveUri();
+  const existing = session.existing;
 
   const backdrop = document.createElement('div');
   backdrop.className = 'cond-fmt-modal-backdrop';
@@ -364,7 +396,7 @@ function openRuleModal(
   colorLabel.className = 'cond-fmt-color-label';
   colorLabel.textContent = 'Color:';
   colorRow.appendChild(colorLabel);
-  let selectedColor: RuleColor = existing?.color ?? 'yellow';
+  let selectedColor: RuleColor = session.color;
 
   for (const c of RULE_COLORS_ORDER) {
     const sw = document.createElement('button');
@@ -375,6 +407,7 @@ function openRuleModal(
     sw.addEventListener('click', (e) => {
       e.stopPropagation();
       selectedColor = c;
+      session.color = c;
       colorRow.querySelectorAll('.cond-fmt-color-swatch').forEach((el) => {
         el.classList.remove('selected');
       });
@@ -425,11 +458,12 @@ function openRuleModal(
   // Wire Monaco.
   modalEditor = createFormulaEditor(
     editorHost,
-    existing?.formula ?? '',
+    session.formula,
     {
       getColumns: () =>
         callbacks.getColumns().map((c) => ({ field: c.field })),
       onChange: (text) => {
+        session.formula = text;
         refreshModalStatus(text, status, saveBtn, callbacks);
       },
       requestClipboardText: callbacks.requestClipboardText,
@@ -474,10 +508,13 @@ function openRuleModal(
   });
 
   modalEscHandler = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      closeRuleModal();
-    }
+    if (e.key !== 'Escape') return;
+    // If Monaco has an autocomplete / parameter-hint / find popup open, let
+    // Escape dismiss THAT (Monaco handles it on the way down to the editor).
+    // Don't close the modal — Escape only rejects the suggestion here.
+    if (modalEditor?.isWidgetOpen()) return;
+    e.preventDefault();
+    closeRuleModal();
   };
   document.addEventListener('keydown', modalEscHandler, true);
 
@@ -724,7 +761,9 @@ function makeDraggable(modal: HTMLElement, handle: HTMLElement): void {
   });
 }
 
-function closeRuleModal(): void {
+// Tear down the modal DOM WITHOUT discarding its saved session — used when the
+// modal is hidden because the user switched to another file.
+function dismountModal(): void {
   if (modalEditor) {
     modalEditor.dispose();
     modalEditor = null;
@@ -733,11 +772,43 @@ function closeRuleModal(): void {
     modalRef.parentElement.removeChild(modalRef);
   }
   modalRef = null;
+  modalOwnerKey = null;
   helpPanelRef = null;
   if (modalEscHandler) {
     document.removeEventListener('keydown', modalEscHandler, true);
     modalEscHandler = null;
   }
+}
+
+// Close the modal because the USER dismissed it (Cancel / Save / Escape).
+// Discards the saved session so returning to the file opens a fresh modal.
+function closeRuleModal(): void {
+  const owner = modalOwnerKey;
+  dismountModal();
+  if (owner) modalSessions.delete(owner);
+}
+
+// Show/hide the modal to match the displayed result key. Called whenever the
+// active (displayed) file changes: hides the modal (state preserved) when it
+// belongs to a different file, and re-shows a saved one when its file becomes
+// active again. The caller's getActiveUri() returns the DISPLAYED key, so a
+// pinned result keeps its modal on screen regardless of editor focus.
+export function syncRuleModalToActiveKey(callbacks: RulesUiCallbacks): void {
+  const active = callbacks.getActiveUri();
+  if (modalRef) {
+    if (modalOwnerKey === active) return;
+    dismountModal();
+  }
+  if (active && modalSessions.has(active)) {
+    mountModal(callbacks, modalSessions.get(active) as ModalSession);
+  }
+}
+
+// Drop any saved modal session for a file that's been closed/dropped, and tear
+// down the modal if it's currently showing that file.
+export function discardModalSession(uri: string): void {
+  modalSessions.delete(uri);
+  if (modalOwnerKey === uri) dismountModal();
 }
 
 // Re-rendering signal: when rules-changed messages come in, the host may

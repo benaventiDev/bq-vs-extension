@@ -30,7 +30,7 @@ query output, not editing your warehouse.
 - 🔍 **Google Sheets-style filtering** — per-column value checklists and condition builders.
 - 📌 **Pinning** — pin columns to the left, or pin a whole result so it stays on screen while
   you edit another file.
-- ✨ **SQL formatter** — reformat BigQuery SQL (`Ctrl+Alt+B` / `Cmd+Alt+B`, or format-on-save).
+- ✨ **SQL formatter** — reformat BigQuery SQL (`Shift+Alt+F`, or `Ctrl+K Ctrl+B` / `Cmd+K Cmd+B`, or format-on-save).
 - 🧱 **Multi-statement scripts** — a console-style "All results" overview with per-statement
   timing and drill-in.
 - 📤 **Export** — CSV, Excel (`.xlsx`), JSON, or copy TSV to the clipboard.
@@ -130,6 +130,12 @@ schema (preserving your SELECT column order and accurate types like BYTES / JSON
 REPEATED) and the real query for the rows. User-visible latency is `max(dry-run, real query)`
 instead of the sum. If either phase fails, the other is cancelled and its error is surfaced in
 a red banner (e.g. `Syntax error: ...` or `Not found: Table ...`).
+
+**Errors come through verbatim**, so BigQuery's precise diagnostics — including its
+"Did you mean …?" suggestions — land right in the panel. No generic "query failed"; you fix
+the SQL without leaving the editor.
+
+![A red error banner showing BigQuery's exact message with a column-name suggestion](https://raw.githubusercontent.com/benaventiDev/bq-vs-extension/main/images/error.png)
 
 While a query is in flight you can stop it three ways: (1) click **Cancel query** in the
 loading state; (2) press **Shift+Enter** again on the same file to start a new query — the
@@ -259,7 +265,7 @@ The extension registers a BigQuery-dialect SQL formatter (via
 [sql-formatter](https://github.com/sql-formatter-org/sql-formatter)) available three ways:
 
 - **Shift+Alt+F** — VS Code's standard "Format Document" (also right-click → Format Document).
-- **Ctrl+Alt+B** (**Cmd+Alt+B**) — dedicated "BigQuery: Format SQL" that always uses this
+- **Ctrl+K Ctrl+B** (**Cmd+K Cmd+B**) — dedicated "BigQuery: Format SQL" that always uses this
   formatter even if another SQL formatter is your default. Also in the Command Palette.
 - **Format on save** — opt in with `"editor.formatOnSave": true`.
 

@@ -45,6 +45,8 @@ import {
   maybeRefreshRulesPopover,
   notifyModalThemeChange,
   renderConditionalFormattingButton,
+  syncRuleModalToActiveKey,
+  discardModalSession,
 } from './rules/rulesUi';
 import type { Rule } from '../panel/rules/rulesStore';
 import { parse as parseFormula } from '../formula/parser';
@@ -218,6 +220,22 @@ const rulesByUri = new Map<string, Rule[]>();
 function getRulesFor(uri: string | null): Rule[] {
   if (!uri) return [];
   return rulesByUri.get(uri) ?? [];
+}
+
+// The RulesUiCallbacks bundle, rebuilt on demand — every accessor reads live
+// module state. Shared by the conditional-formatting button, the popover
+// refresh, and the per-file modal sync so they all route through the same
+// (pin-aware) active key.
+function buildRulesCallbacks() {
+  return {
+    getActiveUri: () => activeKey,
+    getRules: () => getRulesFor(activeKey),
+    getColumns: () => activeColumns(),
+    getRows: () => activeRows(),
+    saveRules: (rules: Rule[]) => saveRules(activeKey, rules),
+    getResolvedTheme: () => resolvedTheme,
+    requestClipboardText,
+  };
 }
 
 // Pending OS-clipboard read requests. Webviews block
@@ -1360,15 +1378,7 @@ function renderSelectGrid(
     footer.appendChild(renderRenderModeToggle(active));
   }
   footer.appendChild(
-    renderConditionalFormattingButton({
-      getActiveUri: () => activeKey,
-      getRules: () => getRulesFor(activeKey),
-      getColumns: () => activeColumns(),
-      getRows: () => activeRows(),
-      saveRules: (rules) => saveRules(activeKey, rules),
-      getResolvedTheme: () => resolvedTheme,
-      requestClipboardText,
-    }),
+    renderConditionalFormattingButton(buildRulesCallbacks()),
   );
   // Pin toggle — immediately after the conditional-formatting button in the
   // left cluster. `active.tab.key` is the displayed result's key (the active
@@ -1683,6 +1693,9 @@ function renderPinButton(displayedTabKey: string): HTMLElement {
     } else {
       render();
     }
+    // Unpinning can flip the panel to a different file — hide/restore the CF
+    // rule modal to match whatever result is now displayed.
+    syncRuleModalToActiveKey(buildRulesCallbacks());
   });
 
   wrap.appendChild(btn);
@@ -4043,6 +4056,7 @@ function applyHostMessage(msg: HostToWebviewMessage): void {
       }
       recomputeActiveKey();
       render();
+      syncRuleModalToActiveKey(buildRulesCallbacks());
       break;
     }
     case 'tab-drop':
@@ -4054,6 +4068,9 @@ function applyHostMessage(msg: HostToWebviewMessage): void {
       if (editorTabKey === msg.key) editorTabKey = null;
       recomputeActiveKey();
       render();
+      // The file's gone — drop any saved modal session for it, then re-sync.
+      discardModalSession(msg.key);
+      syncRuleModalToActiveKey(buildRulesCallbacks());
       break;
     case 'set-active': {
       const prevActiveKey = activeKey;
@@ -4068,6 +4085,8 @@ function applyHostMessage(msg: HostToWebviewMessage): void {
       } else {
         render();
       }
+      // Hide/restore the CF rule modal to match the now-displayed file.
+      syncRuleModalToActiveKey(buildRulesCallbacks());
       break;
     }
     case 'theme-changed':
@@ -4127,15 +4146,7 @@ function applyHostMessage(msg: HostToWebviewMessage): void {
       }
       // If a rules popover is open and showing the active file's list, it
       // re-renders. The rulesUi module guards against not-open.
-      maybeRefreshRulesPopover({
-        getActiveUri: () => activeKey,
-        getRules: () => getRulesFor(activeKey),
-        getColumns: () => activeColumns(),
-        getRows: () => activeRows(),
-        saveRules: (rules) => saveRules(activeKey, rules),
-        getResolvedTheme: () => resolvedTheme,
-        requestClipboardText,
-      });
+      maybeRefreshRulesPopover(buildRulesCallbacks());
       break;
     }
     case 'panel-zoom-changed': {

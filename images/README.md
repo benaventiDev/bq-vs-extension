@@ -35,7 +35,8 @@ image. Before saving each PNG, confirm:
 | `color-drag.png` | `demo-queries/02_shakespeare.sql` | Highlighting mode ON, a dragged range of rows painted one color. |
 | `pin-result.png` | `demo-queries/03_names_timeseries.sql` | The amber "showing pinned result from X — currently editing Y" banner + dashed top border. |
 | `export-menu.png` | `03_names_timeseries.sql` | The footer download menu open (CSV / Excel / JSON / Copy to clipboard). |
-| `sql-format.png` | `03_names_timeseries.sql` | Before/after of the messy query reformatted with `Ctrl+Alt+B` (or two side-by-side shots). |
+| `sql-format.png` | `03_names_timeseries.sql` | Before/after of the messy query reformatted with `Ctrl+K Ctrl+B` (or two side-by-side shots). |
+| `error.png` | `demo-queries/04_error_demo.sql` | The red error banner showing BigQuery's verbatim message + its "Did you mean name?" suggestion. |
 
 ## Tips for clean shots
 

@@ -456,6 +456,11 @@ export interface FormulaEditorHandle {
   focus: () => void;
   dispose: () => void;
   layout: () => void;
+  // True when a Monaco popup that Escape should dismiss (autocomplete
+  // suggestions, parameter hints, or the find widget) is currently open. The
+  // modal's Esc handler consults this so Escape closes the popup first,
+  // instead of closing the whole rule modal.
+  isWidgetOpen: () => boolean;
 }
 
 export function createFormulaEditor(
@@ -526,6 +531,13 @@ export function createFormulaEditor(
     setValue: (t) => editor.setValue(t),
     focus: () => editor.focus(),
     layout: () => editor.layout(),
+    // With fixedOverflowWidgets the suggest / parameter-hint popups render in
+    // an overflow node on <body> (not inside the editor), so we check the
+    // document. A visible one means Escape should dismiss it, not the modal.
+    isWidgetOpen: () =>
+      !!document.querySelector(
+        '.suggest-widget.visible, .parameter-hints-widget.visible, .find-widget.visible',
+      ),
     dispose: () => {
       for (const d of disposables) d.dispose();
       if (model) {

@@ -105,9 +105,9 @@
       },
       {
         "command": "bqVsExtension.formatSql",
-        "key": "ctrl+alt+b",
-        "mac": "cmd+alt+b",
-        "when": "editorTextFocus && editorLangId == sql"
+        "key": "ctrl+k ctrl+b",
+        "mac": "cmd+k cmd+b",
+        "when": "editorTextFocus && (editorLangId == sql || resourceExtname == .sql)"
       }
     ],
     "configuration": {

@@ -48,9 +48,8 @@ many rules are currently defined for this file.
 ![The conditional-formatting button in the footer, with a rule-count badge](../images/cf-button.png)
 
 The rules **popover** opens, listing every rule for the current `.sql` file with its
-color swatch, a short preview of its formula, and per-rule controls.
-
-![The rules popover listing existing rules with reorder, edit, and delete controls](../images/cf-rules-popover.png)
+color swatch, a short preview of its formula, and per-rule controls (reorder ▲▼, edit ✎,
+delete ✕, and **Clear all**).
 
 ---
 
@@ -63,8 +62,6 @@ color swatch, a short preview of its formula, and per-rule controls.
 4. Watch the **live preview** underneath: it reports **"Matches N of M rows"** as you
    type, so you know the rule does something before you save it.
 5. Click **Save**. The popover updates and the grid repaints instantly.
-
-![The add-rule modal: color palette, formula editor, and the live 'matches N of M rows' preview](../images/cf-rule-modal.png)
 
 > **Tip:** The modal is draggable — grab its title bar and move it aside if it covers the
 > rows you want to watch light up.

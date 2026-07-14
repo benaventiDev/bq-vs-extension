@@ -49,9 +49,15 @@ export function registerFormatter(context: vscode.ExtensionContext): void {
         void vscode.window.showWarningMessage('Open a SQL file to format.');
         return;
       }
-      if (editor.document.languageId !== 'sql') {
+      // Accept the command on any SQL file — by language id OR by `.sql`
+      // extension, so it still works if the file wasn't picked up as the
+      // built-in `sql` language for some reason.
+      const doc = editor.document;
+      const isSqlDoc =
+        doc.languageId === 'sql' || doc.uri.fsPath.toLowerCase().endsWith('.sql');
+      if (!isSqlDoc) {
         void vscode.window.showWarningMessage(
-          'BQ: Format SQL only formats SQL files.',
+          'BigQuery: Format SQL only formats SQL files.',
         );
         return;
       }
