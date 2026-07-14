@@ -3,7 +3,7 @@
   "displayName": "BigQuery Result Explorer",
   "description": "Analyze query results in your editor — highlight, conditionally format, pin, filter, sort, and copy in a spreadsheet-style grid instead of exporting to Excel. BigQuery support built in.",
   "version": "0.3.0",
-  "publisher": "benaventi-fuentes",
+  "publisher": "benaventi",
   "author": {
     "name": "Benaventi Fuentes"
   },

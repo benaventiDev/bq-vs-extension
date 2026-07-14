@@ -6,8 +6,8 @@
 conditionally format, pin, filter, sort, and copy the results in a fast, spreadsheet-style
 grid — instead of exporting to CSV and opening Excel.
 
-[![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/benaventi-fuentes.bq-vs-extension?label=Marketplace)](https://marketplace.visualstudio.com/items?itemName=benaventi-fuentes.bq-vs-extension)
-[![Installs](https://img.shields.io/visual-studio-marketplace/i/benaventi-fuentes.bq-vs-extension)](https://marketplace.visualstudio.com/items?itemName=benaventi-fuentes.bq-vs-extension)
+[![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/benaventi.bq-vs-extension?label=Marketplace)](https://marketplace.visualstudio.com/items?itemName=benaventi.bq-vs-extension)
+[![Installs](https://img.shields.io/visual-studio-marketplace/i/benaventi.bq-vs-extension)](https://marketplace.visualstudio.com/items?itemName=benaventi.bq-vs-extension)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ![The BigQuery Result Explorer grid showing query results in VS Code's bottom panel](https://raw.githubusercontent.com/benaventiDev/bq-vs-extension/main/images/hero.png)
@@ -71,7 +71,7 @@ columns you want to keep in view as you scroll.
 
 **From the Marketplace:** search **"BigQuery Result Explorer"** in the Extensions view
 (`Ctrl+Shift+X`), or install from the
-[Marketplace page](https://marketplace.visualstudio.com/items?itemName=benaventi-fuentes.bq-vs-extension).
+[Marketplace page](https://marketplace.visualstudio.com/items?itemName=benaventi.bq-vs-extension).
 
 **From a `.vsix`:** download the latest release, then run
 `Extensions: Install from VSIX…` from the Command Palette (or
@@ -274,7 +274,7 @@ The extension registers a BigQuery-dialect SQL formatter (via
 - **Format on save** — opt in with `"editor.formatOnSave": true`.
 
 Lock this formatter in for Format Document with
-`"[sql]": { "editor.defaultFormatter": "benaventi-fuentes.bq-vs-extension" }`. Four settings
+`"[sql]": { "editor.defaultFormatter": "benaventi.bq-vs-extension" }`. Four settings
 under `bqVsExtension.format.*` control the output: `keywordCase` (default `upper`), `indentSize`
 (default `2`), `expressionWidth` (default `100`), and `linesBetweenQueries` (default `2`). It
 handles BigQuery-specific syntax (`STRUCT<>` / `ARRAY<>` literals, `UNNEST`, CTEs, table-suffix
