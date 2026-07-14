@@ -45,7 +45,7 @@ export function openSponsorPage(): void {
  */
 export async function showSponsorNudgeNow(): Promise<void> {
   const choice = await vscode.window.showInformationMessage(
-    '❤️ Enjoying BigQuery Explorer? A sponsorship helps keep it free and maintained. Thank you!',
+    '❤️ Enjoying BigQuery Data Explorer? A sponsorship helps keep it free and maintained. Thank you!',
     'Sponsor',
     'Maybe later',
   );
