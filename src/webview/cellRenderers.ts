@@ -10,6 +10,11 @@ export interface NestedRendererParams extends ICellRendererParams {
 const INT_RE = /^-?\d+$/;
 const FLOAT_RE = /^-?\d+\.\d+(?:[eE][+-]?\d+)?$/;
 
+// Cap the rendered preview string for scalar arrays. The cell clips by width
+// (CSS ellipsis) and the click popover holds the complete value, so this only
+// guards the DOM against pathologically large arrays.
+const PREVIEW_MAX_CHARS = 4000;
+
 function isPlainObject(v: unknown): v is Record<string, unknown> {
   return (
     typeof v === 'object' &&
@@ -19,7 +24,7 @@ function isPlainObject(v: unknown): v is Record<string, unknown> {
   );
 }
 
-function isArrayOfPlainObjects(v: unknown): v is Record<string, unknown>[] {
+export function isArrayOfPlainObjects(v: unknown): v is Record<string, unknown>[] {
   if (!Array.isArray(v) || v.length === 0) return false;
   for (const item of v) {
     if (!isPlainObject(item)) return false;
@@ -29,7 +34,10 @@ function isArrayOfPlainObjects(v: unknown): v is Record<string, unknown>[] {
 
 function shortScalar(v: unknown): string {
   if (v === null || v === undefined) return 'null';
-  if (typeof v === 'string') return JSON.stringify(v);
+  // Render strings bare — no wrapping quotes. Matches the inline STRUCT/ARRAY
+  // table convention (formatTableValue) and BigQuery console; a quoted
+  // TIMESTAMP string otherwise reads misleadingly as a plain STRING.
+  if (typeof v === 'string') return v;
   if (typeof v === 'number' || typeof v === 'boolean') return String(v);
   if (v instanceof Date) return v.toISOString();
   if (Array.isArray(v)) return v.length === 0 ? '[]' : `[…${v.length}]`;
@@ -69,8 +77,15 @@ export function previewArray(v: unknown): string {
     }
   }
   if (v.length === 0) return '[]';
-  if (v.length === 1) return `[${expandedItem(v[0])}]`;
-  return `[${expandedItem(v[0])}, …+${v.length - 1}]`;
+  // Render the FULL array; the cell clips by width (CSS text-overflow:ellipsis),
+  // so widening the column reveals more elements — no fixed `…+N` truncation.
+  // The click popover holds the complete value, so cap the string for safety.
+  const inner = v.map(expandedItem).join(', ');
+  const capped =
+    inner.length > PREVIEW_MAX_CHARS
+      ? `${inner.slice(0, PREVIEW_MAX_CHARS)}…`
+      : inner;
+  return `[${capped}]`;
 }
 
 export function previewBytes(v: unknown): string {
@@ -270,9 +285,12 @@ export class NestedCellRenderer implements ICellRendererComp {
   // Inline tables can attach many inner click handlers (one per `[…N]` / `{…}`
   // reference cell). Track them all so destroy() can release each listener.
   private tracked: TrackedClick[] = [];
+  // The value we rendered from — refresh() keeps our DOM when it's unchanged.
+  private value: unknown = undefined;
 
   init(params: NestedRendererParams): void {
     const v = params.value;
+    this.value = v;
 
     if (v === null || v === undefined) {
       this.eGui = document.createElement('span');
@@ -297,7 +315,11 @@ export class NestedCellRenderer implements ICellRendererComp {
       return;
     }
 
-    // All other nested kinds: one-line preview + click opens popover.
+    // All other nested kinds: one-line preview. Single-click just selects the
+    // cell (grid range selection); double-click opens the full-value popover —
+    // handled at the grid level (onRangeCellDoubleClicked), consistent with how
+    // plain cells reveal their full value on double-click. The hover underline
+    // (.nested-cell-preview:hover) stays as the "there's more here" hint.
     const span = document.createElement('span');
     let preview: string;
     switch (kind) {
@@ -319,13 +341,6 @@ export class NestedCellRenderer implements ICellRendererComp {
     span.className = `nested-cell-preview nested-${kind}`;
     span.textContent = preview;
     span.title = preview;
-
-    const handler = (e: MouseEvent) => {
-      e.stopPropagation();
-      params.onOpen(v, kind, span);
-    };
-    span.addEventListener('click', handler);
-    this.tracked.push({ target: span, handler });
     this.eGui = span;
   }
 
@@ -333,8 +348,14 @@ export class NestedCellRenderer implements ICellRendererComp {
     return this.eGui;
   }
 
-  refresh(): boolean {
-    return false;
+  refresh(params: NestedRendererParams): boolean {
+    // Keep our existing DOM when the value is unchanged. Range-selection repaints
+    // call gridApi.refreshCells({ force: true }) on every mousedown; returning
+    // false there would destroy + recreate this cell element BETWEEN the two
+    // clicks of a double-click, so the browser never pairs them into a `dblclick`
+    // (which is what opens the popover). Our content derives purely from the
+    // immutable cell value, so we only rebuild when that value actually changes.
+    return params.value === this.value;
   }
 
   destroy(): void {

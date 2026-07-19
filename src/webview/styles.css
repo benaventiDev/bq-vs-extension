@@ -1246,7 +1246,9 @@ select,
   border-bottom: 1px solid var(--theme-border);
   padding: 2px 8px 2px 4px;
   white-space: nowrap;
-  background: transparent;
+  /* Solid background matching the cell so rows scrolling under this sticky
+     header are hidden behind it instead of bleeding through as overlapped text. */
+  background: var(--theme-bg);
   position: sticky;
   top: 0;
   z-index: 1;

@@ -37,6 +37,8 @@ import type { ParsedColumn, ParsedRow } from '../bq/parseJson';
 import {
   NestedCellRenderer,
   bytesToHex,
+  isArrayOfPlainObjects,
+  previewArray,
   type NestedKind,
 } from './cellRenderers';
 import { explodeRows } from './rowExplode';
@@ -2325,9 +2327,18 @@ function onRangeCellMouseOver(e: CellMouseOverEvent): void {
 function onRangeCellDoubleClicked(e: CellDoubleClickedEvent): void {
   if (highlightModeEnabled) return;
   if (isGutterCol(e.column)) return;
-  if (e.column.getColDef().cellClass === 'nested-cell') return;
   const target = e.event?.target as HTMLElement | null;
   const cellEl = target?.closest<HTMLElement>('.ag-cell');
+  // Nested cells (array / struct / json / bytes) open their full-value popover
+  // on double-click — mirrors the single-click affordance and keeps
+  // "double-click = reveal full value" consistent with plain cells' text overlay.
+  if (e.column.getColDef().cellClass === 'nested-cell') {
+    const kind = e.column.getColDef().cellRendererParams?.nestedKind as
+      | NestedKind
+      | undefined;
+    if (kind && cellEl) openNestedPopover(e.value, kind, cellEl);
+    return;
+  }
   if (cellEl) enterTextMode(cellEl);
 }
 
@@ -3421,7 +3432,7 @@ function mountGrid(
   const colDefs: ColDef[] = [
     rowNumberCol,
     ...columns.map((c) =>
-      buildColDefWithRule(c, ruleColors, onColumnFilterChanged, headerCallbacks),
+      buildColDefWithRule(c, ruleColors, onColumnFilterChanged, headerCallbacks, rows),
     ),
   ];
 
@@ -3718,8 +3729,9 @@ function buildColDefWithRule(
   _ruleColors: Map<number, string>,
   onColumnFilterChanged: (field: string, model: SheetsFilterModel | null) => void,
   headerCallbacks: ColumnHeaderParams,
+  rows: ParsedRow[],
 ): ColDef {
-  return buildColDef(col, onColumnFilterChanged, headerCallbacks);
+  return buildColDef(col, onColumnFilterChanged, headerCallbacks, rows);
 }
 
 function sizeColumnsForContent(
@@ -3762,7 +3774,14 @@ function sizeColumnsForContent(
     for (const row of rows) {
       const v = (row as Record<string, unknown>)[field];
       if (v == null || v === '') continue;
-      const str = v instanceof Date ? v.toISOString() : String(v);
+      // Only scalar arrays reach here (ARRAY<STRUCT>/STRUCT set suppressAutoSize);
+      // measure their rendered `[a, b, …]` preview, not String()'s comma-join, so
+      // the width matches what the cell actually shows.
+      const str = Array.isArray(v)
+        ? previewArray(v)
+        : v instanceof Date
+          ? v.toISOString()
+          : String(v);
       const w = ctx.measureText(str).width;
       if (w > contentWidth) contentWidth = w;
     }
@@ -3790,10 +3809,22 @@ function computeRowNumberWidth(host: HTMLDivElement, rowCount: number): number {
   return Math.max(30, Math.ceil(w + 10));
 }
 
+// First non-empty array value for a column across the rows — used to tell a
+// scalar array apart from an ARRAY<STRUCT>. The element type decides how the
+// cell renders (preview span vs inline table) and how it's sized.
+function firstNonEmptyArray(field: string, rows: ParsedRow[]): unknown[] | null {
+  for (const row of rows) {
+    const v = (row as Record<string, unknown>)[field];
+    if (Array.isArray(v) && v.length > 0) return v;
+  }
+  return null;
+}
+
 function buildColDef(
   col: ParsedColumn,
   onColumnFilterChanged: (field: string, model: SheetsFilterModel | null) => void,
   headerCallbacks: ColumnHeaderParams,
+  rows: ParsedRow[],
 ): ColDef {
   const nestedKind = nestedKindFor(col.type);
   const isDotted = col.field.includes('.');
@@ -3813,9 +3844,18 @@ function buildColDef(
   if (nestedKind) {
     const isArray = nestedKind === 'array';
     const isStructLike = nestedKind === 'struct' || nestedKind === 'json';
+    // Distinguish a scalar array (ARRAY<TIMESTAMP/STRING/…>, rendered as a
+    // one-line clipped preview) from an ARRAY<STRUCT> (rendered as an inline
+    // mini-table). Only the latter — and STRUCT/JSON — need the extra width and
+    // auto-height. A scalar array behaves like any ordinary column: content-sized
+    // (capped by sizeColumnsForContent), single-line, clipped with an ellipsis.
+    const isStructArray = isArray && isArrayOfPlainObjects(firstNonEmptyArray(col.field, rows));
+    const isScalarArray = isArray && !isStructArray;
+    const usesInlineTable = isStructArray || isStructLike;
     let width = 220;
-    if (isArray) width = 480;
+    if (isStructArray) width = 480;
     else if (isStructLike) width = 360;
+    else if (isScalarArray) width = 200;
     return {
       field: col.field,
       headerName: col.field,
@@ -3823,10 +3863,12 @@ function buildColDef(
       sortable: false,
       filter: false,
       resizable: true,
-      suppressAutoSize: true,
+      // Scalar arrays get content-based sizing (capped at the normal MAX_WIDTH)
+      // like every other column; inline-table cells keep their fixed width.
+      suppressAutoSize: !isScalarArray,
       width,
       minWidth: 80,
-      autoHeight: isArray || isStructLike,
+      autoHeight: usesInlineTable,
       cellRenderer: NestedCellRenderer,
       cellRendererParams: {
         nestedKind,
