@@ -3667,12 +3667,6 @@ function mountGrid(
         }
       }
       updateClearFiltersButton();
-      console.log(
-        `[SF-DIAG] grid.onFilterChanged displayedRows=${
-          gridApi?.getDisplayedRowCount() ?? '?'
-        } totalRows=${rows.length} ` +
-          `model=${JSON.stringify(gridApi?.getFilterModel() ?? {})}`,
-      );
       // Reset to the first row whenever the filter changes (applied OR
       // cleared) — matches the user's mental model that "the data
       // changed, show me the top". Horizontal scroll is intentionally
