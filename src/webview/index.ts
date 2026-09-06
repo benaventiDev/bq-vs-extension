@@ -56,6 +56,7 @@ import { buildContext, matches } from '../formula/evaluator';
 import { SheetsFilterComp, type ActiveFilterHandle } from './filters/sheetsFilter';
 import type { FilterDraft, SheetsFilterModel } from './filters/sheetsFilterUi';
 import { ColumnHeader, type ColumnHeaderParams } from './columnHeader';
+import { ColumnJumpHeader, type ColumnJumpHeaderParams } from './columnJump';
 import { compareDecimalStrings } from './decimal';
 import {
   renderExportButton,
@@ -436,6 +437,11 @@ let highlightToggleInputRef: HTMLInputElement | null = null;
 let themeBtnRef: HTMLButtonElement | null = null;
 let columnsBtnRef: HTMLButtonElement | null = null;
 let clearFiltersBtnRef: HTMLButtonElement | null = null;
+// "Jump to column" grow/glow overlay — tracks the currently-shown overlay
+// element + its cleanup timer so a second jump (same or different column)
+// before the first one finishes clears the old overlay instead of racing it.
+let columnJumpOverlayEl: HTMLElement | null = null;
+let columnJumpOverlayTimer: ReturnType<typeof setTimeout> | null = null;
 
 // M11 panel zoom. Range 30–250%; +/- buttons step by 25, but the manual
 // input accepts any integer in range. Hydrated from workspaceState on
@@ -2155,6 +2161,178 @@ function isGutterCol(c: Column): boolean {
   return (def.headerName ?? '') === '' && def.lockPosition === 'left';
 }
 
+function columnJumpLabel(c: Column): string {
+  const def = c.getColDef();
+  return (def.headerName as string | undefined) || (def.field as string | undefined) || c.getColId();
+}
+
+// Scrolls the given column into view (no-op if already fully visible; a
+// minimal scroll landing at whichever edge it enters from otherwise — see
+// gridApi.ensureColumnVisible's 'auto' default), then grows + glows the
+// header cell for a moment so it stands out. Header only — the column body
+// is left alone.
+//
+// The grow/glow is done via a free-floating overlay positioned on top of the
+// real header cell (fixed position, sized to its rect), NOT by animating the
+// header cell in place. AG Grid clips its header through several nested
+// overflow:hidden containers (.ag-header-viewport, .ag-header, .ag-header-row
+// — each boxed to exactly the header's own height), so scaling the real cell
+// crops the top/bottom of the effect. The overlay sits outside all of that,
+// same document.body + getBoundingClientRect convention the popovers use.
+function jumpToColumnAndFlash(colId: string): void {
+  if (!gridApi) return;
+  gridApi.ensureColumnVisible(colId);
+
+  const FLASH_DURATION = 550;
+  const FADE_DURATION = 250;
+
+  // Clear any still-pending overlay from a previous jump before starting a
+  // new one — otherwise a rapid second jump would race the first cleanup
+  // timer or leave a stray overlay behind.
+  if (columnJumpOverlayTimer) {
+    clearTimeout(columnJumpOverlayTimer);
+    columnJumpOverlayTimer = null;
+  }
+  if (columnJumpOverlayEl) {
+    columnJumpOverlayEl.remove();
+    columnJumpOverlayEl = null;
+  }
+
+  // One frame's delay so the scroll ensureColumnVisible just triggered has
+  // actually been applied to layout before we measure the header cell's rect.
+  requestAnimationFrame(() => {
+    const headerCell = mountedGridHost?.querySelector<HTMLElement>(
+      `.ag-header-cell[col-id="${colId}"]`,
+    );
+    if (!headerCell) return;
+
+    const rect = headerCell.getBoundingClientRect();
+    const overlay = document.createElement('div');
+    overlay.className = 'col-jump-overlay';
+    overlay.style.left = `${rect.left}px`;
+    overlay.style.top = `${rect.top}px`;
+    overlay.style.width = `${rect.width}px`;
+    overlay.style.height = `${rect.height}px`;
+    document.body.appendChild(overlay);
+    columnJumpOverlayEl = overlay;
+
+    // Force layout so the base (unscaled, no-glow) state is committed as its
+    // own frame before adding the flash class — otherwise the browser can
+    // coalesce insertion + class-add into one paint and skip the transition.
+    void overlay.offsetWidth;
+    overlay.classList.add('col-jump-flash');
+
+    columnJumpOverlayTimer = setTimeout(() => {
+      overlay.classList.remove('col-jump-flash');
+      overlay.classList.add('col-jump-flash-fade');
+      columnJumpOverlayTimer = setTimeout(() => {
+        overlay.remove();
+        columnJumpOverlayTimer = null;
+        columnJumpOverlayEl = null;
+      }, FADE_DURATION);
+    }, FLASH_DURATION);
+  });
+}
+
+// "Jump to column" search popover — opened from the row-number gutter's
+// header button (ColumnJumpHeader). Single-select: clicking (or Enter-ing to)
+// a column jumps + flashes it and closes the popover immediately, unlike the
+// multi-toggle "show/hide columns" popover it otherwise mirrors.
+function openColumnJumpPopover(anchor: HTMLElement): void {
+  closePopover();
+  if (!gridApi) return;
+
+  const pop = document.createElement('div');
+  pop.className = 'column-jump-popover';
+
+  const searchInput = document.createElement('input');
+  searchInput.type = 'text';
+  searchInput.className = 'column-jump-search';
+  searchInput.placeholder = 'Search columns';
+  pop.appendChild(searchInput);
+
+  const list = document.createElement('div');
+  list.className = 'column-jump-list';
+  pop.appendChild(list);
+
+  // Only currently-visible data columns are searchable — jumping to a
+  // hidden column wouldn't scroll/flash anything the user could see.
+  const cols = (gridApi.getColumns() ?? []).filter(
+    (c) => !isGutterCol(c) && c.isVisible(),
+  );
+
+  const selectColumn = (colId: string): void => {
+    jumpToColumnAndFlash(colId);
+    closePopover();
+  };
+
+  const renderList = (query: string): void => {
+    list.innerHTML = '';
+    const q = query.trim().toLowerCase();
+    const matches = q ? cols.filter((c) => columnJumpLabel(c).toLowerCase().includes(q)) : cols;
+
+    if (matches.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'column-jump-empty';
+      empty.textContent = 'No matching columns';
+      list.appendChild(empty);
+      return;
+    }
+
+    for (const c of matches) {
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'column-jump-option';
+      item.textContent = columnJumpLabel(c);
+      item.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectColumn(c.getColId());
+      });
+      list.appendChild(item);
+    }
+  };
+
+  searchInput.addEventListener('input', () => renderList(searchInput.value));
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    list.querySelector<HTMLElement>('.column-jump-option')?.click();
+  });
+
+  renderList('');
+
+  // Fixed-position popover anchored below the button — the header cell it
+  // lives in clips overflow, same reason openNestedPopover uses document.body
+  // + getBoundingClientRect instead of an in-flow parentElement.appendChild.
+  const rect = anchor.getBoundingClientRect();
+  pop.style.position = 'fixed';
+  const leftClamped = Math.max(8, Math.min(rect.left, window.innerWidth - 260));
+  pop.style.left = `${leftClamped}px`;
+  const MAX_POPOVER_H = 360;
+  const spaceBelow = window.innerHeight - rect.bottom;
+  if (spaceBelow >= 160 || spaceBelow >= rect.top) {
+    pop.style.top = `${rect.bottom + 4}px`;
+    pop.style.maxHeight = `${Math.min(MAX_POPOVER_H, Math.max(120, spaceBelow - 16))}px`;
+  } else {
+    pop.style.bottom = `${window.innerHeight - rect.top + 4}px`;
+    pop.style.maxHeight = `${Math.min(MAX_POPOVER_H, Math.max(120, rect.top - 16))}px`;
+  }
+
+  document.body.appendChild(pop);
+  popoverRef = pop;
+
+  popoverDocClickHandler = (e: MouseEvent) => {
+    if (!popoverRef) return;
+    const target = e.target as Node | null;
+    if (target && (popoverRef.contains(target) || anchor.contains(target))) return;
+    closePopover();
+  };
+  document.addEventListener('mousedown', popoverDocClickHandler, true);
+  installEscHandler();
+
+  searchInput.focus();
+}
+
 // ---------------------------------------------------------------------------
 // Sheets/Excel-style cell range selection (active ONLY when the color /
 // highlight toggle is OFF; in color-ON mode the grid stays in click-to-paint
@@ -3367,6 +3545,10 @@ function mountGrid(
   // matches, the click color paints the whole row (existing M5 behaviour).
   const rowNumberCol: ColDef = {
     headerName: '',
+    headerComponent: ColumnJumpHeader,
+    headerComponentParams: {
+      openJumpPopover: (anchor: HTMLElement) => openColumnJumpPopover(anchor),
+    } as ColumnJumpHeaderParams,
     valueGetter: (p: ValueGetterParams) =>
       p.node && p.node.rowIndex != null ? p.node.rowIndex + 1 : '',
     pinned: 'left',
@@ -3485,6 +3667,12 @@ function mountGrid(
         }
       }
       updateClearFiltersButton();
+      console.log(
+        `[SF-DIAG] grid.onFilterChanged displayedRows=${
+          gridApi?.getDisplayedRowCount() ?? '?'
+        } totalRows=${rows.length} ` +
+          `model=${JSON.stringify(gridApi?.getFilterModel() ?? {})}`,
+      );
       // Reset to the first row whenever the filter changes (applied OR
       // cleared) — matches the user's mental model that "the data
       // changed, show me the top". Horizontal scroll is intentionally
