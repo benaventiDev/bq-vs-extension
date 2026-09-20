@@ -75,7 +75,13 @@ console.log(`Preparing ${current} -> ${version}${dryRun ? ' (dry run)' : ''}`);
 
 let lastTag = '';
 try {
-  lastTag = git('describe', '--tags', '--abbrev=0');
+  // stderr is piped, not inherited: with no tags in the repo this fails with
+  // a noisy "No tags can describe" that is expected here, not an error.
+  lastTag = execFileSync('git', ['describe', '--tags', '--abbrev=0'], {
+    cwd: ROOT,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  }).trim();
 } catch {
   // No tags yet — the first releases were published by hand. Fall back to
   // the whole history.
