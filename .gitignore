@@ -7,6 +7,7 @@ out/
 
 # Local-only dev artifacts — never published.
 .claude/
+scratchpad/
 session-notes/
 pre-publish-bugs.md
 doc_bq_ext.MD
