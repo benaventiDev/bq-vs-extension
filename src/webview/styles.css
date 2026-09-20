@@ -989,10 +989,18 @@ select,
 .column-jump-list {
   display: flex;
   flex-direction: column;
+  /* min-height: 0 so this actually scrolls inside the max-height popover
+     instead of pushing past it (flex items default to min-height: auto). */
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
 }
 
 .column-jump-option {
+  /* Never shrink — with a long column list the flex container would
+     otherwise squeeze each row below its line height and the labels would
+     visually overlap one another. */
+  flex: 0 0 auto;
   padding: 5px 10px;
   background: transparent;
   color: var(--theme-fg);
@@ -1013,6 +1021,7 @@ select,
 }
 
 .column-jump-empty {
+  flex: 0 0 auto;
   padding: 5px 10px;
   color: var(--theme-description-fg);
   font-size: 0.9em;
