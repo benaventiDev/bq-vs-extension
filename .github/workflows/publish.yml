@@ -1,0 +1,88 @@
+name: Publish to Marketplace
+
+# `main` is the release branch: day-to-day work happens on `dev` and feature
+# branches, and code reaches `main` only through a merged PR.
+#
+# A merge to `main` does NOT automatically publish. The version number in
+# package.json is the switch: this workflow publishes only when that version
+# has no `v<version>` tag yet. So merging a fix with the version untouched
+# updates `main` and does nothing else, while merging a PR that bumps the
+# version ships it. That keeps "when do we publish" a decision you make in a
+# reviewable diff rather than a button someone presses.
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # manual re-run, e.g. when a Marketplace upload failed
+
+permissions:
+  contents: write # create the release tag and GitHub Release
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      should_publish: ${{ steps.version.outputs.should_publish }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # need the full tag list to know what shipped already
+
+      - name: Decide whether this version is new
+        id: version
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+            echo "v$VERSION is already tagged — nothing to publish."
+            echo "should_publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "v$VERSION is not tagged yet — publishing."
+            echo "should_publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  publish:
+    needs: check
+    if: needs.check.outputs.should_publish == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - run: npm run typecheck
+
+      # vsce runs the `vscode:prepublish` script (esbuild --production) itself,
+      # so there is no separate build step. --no-dependencies matches the local
+      # `package` script: esbuild bundles everything into out/, so the
+      # node_modules tree must not be walked or shipped.
+      - name: Publish to the Marketplace
+        run: npx vsce publish --no-dependencies --no-yarn -p "$VSCE_PAT"
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+      # Tag only after a successful publish: the tag is what marks this
+      # version as shipped, and tagging earlier would make a failed upload
+      # look published and block the retry.
+      - name: Tag the released version
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "v${{ needs.check.outputs.version }}" -m "Release ${{ needs.check.outputs.version }}"
+          git push origin "v${{ needs.check.outputs.version }}"
+
+      - name: Package the .vsix for the release
+        run: npx vsce package --no-dependencies --no-yarn
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.check.outputs.version }}
+          files: '*.vsix'
+          generate_release_notes: true

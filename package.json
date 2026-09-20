@@ -180,7 +180,8 @@
     "watch": "node esbuild.js --watch",
     "typecheck": "tsc --noEmit",
     "vscode:prepublish": "node esbuild.js --production",
-    "package": "vsce package --no-dependencies --no-yarn"
+    "package": "vsce package --no-dependencies --no-yarn",
+    "release": "node scripts/release.js"
   },
   "devDependencies": {
     "@resvg/resvg-js": "^2.6.2",

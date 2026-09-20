@@ -1,0 +1,31 @@
+name: CI
+
+# Runs on every PR and on pushes to the long-lived branches, so a broken
+# build is caught before it can reach `main` — where a merge may publish.
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - run: npm run typecheck
+
+      # Packaging is the real check: it runs the production esbuild bundle and
+      # validates the manifest, README and icon the same way publishing does,
+      # so a .vsix that builds here is one that can ship.
+      - name: Package (verifies the extension builds and packages cleanly)
+        run: npx vsce package --no-dependencies --no-yarn --out /tmp/build.vsix
