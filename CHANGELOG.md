@@ -4,6 +4,31 @@ All notable changes to **BigQuery Data Explorer** are documented here. The forma
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-09-20
+
+### Added
+- **Jump to column** — a search button in the top-left corner of the results grid
+  opens a searchable list of the visible columns. Pick one and the grid scrolls to
+  it and flashes its header, so finding a column in a wide `SELECT *` no longer
+  means scrolling sideways hunting for it.
+
+### Changed
+- Nested `ARRAY` cells render scalar values bare instead of quoted, so a
+  `TIMESTAMP` inside an array no longer reads as a `STRING` — matching the inline
+  `STRUCT` tables and the BigQuery console.
+- Array previews now show the full contents clipped to the column width rather
+  than a fixed `[first, …+N]` summary, with the whole value in the tooltip.
+- Scalar array columns are sized from their content like ordinary columns instead
+  of a fixed 480px; `ARRAY<STRUCT>` keeps its wider inline-table width.
+
+### Fixed
+- The jump-to-column list no longer renders its rows on top of one another when a
+  query returns many columns; the list scrolls instead of compressing.
+- Double-clicking a nested cell reliably opens the full-value popover. Single
+  click selects the cell, as before.
+- The inline `STRUCT` table's sticky header no longer lets rows bleed through it
+  as overlapped text while scrolling.
+
 ## [0.3.2] - 2026-07-14
 
 ### Changed
