@@ -5,6 +5,8 @@ import {
   CredentialError,
   FallbackError,
   bqAccessContext,
+  bqPostJson,
+  type BqResponse,
 } from './bqClient';
 
 export interface SchemaField {
@@ -90,26 +92,20 @@ function dryRunViaRest(sql: string): DryRunHandle {
   const controller = new AbortController();
   let aborted = false;
   const promise = (async (): Promise<DryRunResult> => {
-    const { token, projectId } = await bqAccessContext();
+    const access = await bqAccessContext();
 
-    let resp;
+    let resp: BqResponse<DryRunJobResponse>;
     try {
-      resp = await fetch(
-        `${BIGQUERY_API_BASE}/projects/${encodeURIComponent(projectId)}/jobs`,
+      resp = await bqPostJson<DryRunJobResponse>(
+        access,
+        `${BIGQUERY_API_BASE}/projects/${encodeURIComponent(access.projectId)}/jobs`,
         {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
+          configuration: {
+            dryRun: true,
+            query: { query: sql, useLegacySql: false },
           },
-          body: JSON.stringify({
-            configuration: {
-              dryRun: true,
-              query: { query: sql, useLegacySql: false },
-            },
-          }),
-          signal: controller.signal,
         },
+        controller.signal,
       );
     } catch {
       if (aborted) return { ok: false, error: CANCELLED_MESSAGE };
@@ -122,9 +118,9 @@ function dryRunViaRest(sql: string): DryRunHandle {
       throw new CredentialError('BigQuery API rejected the credentials.');
     }
 
-    const json = (await resp.json().catch(() => null)) as DryRunJobResponse | null;
+    const json = resp.data;
 
-    if (!resp.ok) {
+    if (resp.status < 200 || resp.status >= 300) {
       // A genuine query-validation error (bad SQL, missing table) carries a
       // message — surface it as-is. Anything else falls back to the CLI.
       const msg = json?.error?.message;
