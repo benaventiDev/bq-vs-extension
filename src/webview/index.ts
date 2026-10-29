@@ -33,7 +33,7 @@ import type {
   ThemePreference,
   WebviewToHostMessage,
 } from '../panel/types';
-import type { ParsedColumn, ParsedRow } from '../bq/parseJson';
+import type { ColumnType, ParsedColumn, ParsedRow } from '../bq/parseJson';
 import {
   NestedCellRenderer,
   bytesToHex,
@@ -63,6 +63,19 @@ import {
   closeExportMenuExternally,
   type ExportButtonCallbacks,
 } from './export/exportButton';
+import {
+  attachGridSearch,
+  detachGridSearch,
+  isSearchCurrent,
+  isSearchHit,
+  notifySearchDataChanged,
+  notifySearchSelectionChanged,
+  openSearch,
+  renderSearchWidget,
+  toggleSearch,
+  type GridSearchHost,
+  type SearchScope,
+} from './search/gridSearch';
 
 ModuleRegistry.registerModules([ClientSideRowModelModule]);
 
@@ -420,6 +433,9 @@ let mountedStmtIdx: number | null = null;
 // gridApi has no direct API for the pixel-scroll value, only an index-
 // based ensureIndexVisible that misfires for unvirtualized small grids.
 let mountedGridHost: HTMLElement | null = null;
+// Column types of the mounted grid's view columns, keyed by field. The grid
+// search reads it to skip columns that can't contain the query.
+let mountedColumnTypes = new Map<string, ColumnType>();
 // The currently-shown filter popup's capture handle (set by the filter
 // component's afterGuiAttached via the onShown callback). disposeGrid uses
 // it to snapshot the in-progress draft before teardown. Nulled on every
@@ -1301,12 +1317,14 @@ function renderSelectGrid(
   // scroll math still work while hidden.
   gridHost.style.visibility = 'hidden';
   wrap.appendChild(gridHost);
+  wrap.appendChild(renderSearchWidget(hasNestedColumns(view.columns)));
 
   const footer = document.createElement('div');
   footer.className = 'grid-footer';
 
   footer.appendChild(renderColorPicker(active.tab.key, stmtIdx));
   footer.appendChild(renderHighlightToggle());
+  footer.appendChild(renderSearchButton());
   footer.appendChild(renderClearFiltersButton());
 
   const totalRows = view.rows.length;
@@ -1594,6 +1612,23 @@ function applyHighlightModeAttr(): void {
     'data-highlight-mode',
     highlightModeEnabled ? 'on' : 'off',
   );
+}
+
+// Footer magnifier — opens / closes the find bar (same as Ctrl/Cmd+F).
+function renderSearchButton(): HTMLElement {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'search-toggle-btn';
+  btn.title = 'Find (Ctrl+F)';
+  btn.innerHTML =
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">' +
+    '<circle cx="6.8" cy="6.8" r="4.3"/><path d="M10 10l4 4"/>' +
+    '</svg>';
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleSearch();
+  });
+  return btn;
 }
 
 /**
@@ -2433,6 +2468,8 @@ function scheduleRangeRefresh(): void {
     // value didn't change — that's how .sf-cell-selected is added/removed as
     // the rectangle grows/shrinks. Cost is viewport-bounded (visible cells).
     gridApi?.refreshCells({ force: true });
+    // The selection is the find bar's scope — rescan if that changed.
+    notifySearchSelectionChanged();
   });
 }
 
@@ -2810,6 +2847,118 @@ function restoreCellSelection(key: string, stmtIdx: number): void {
   gridApi.refreshCells({ force: true });
 }
 
+// --- Grid search host --------------------------------------------------------
+// The find bar (search/gridSearch.ts) owns matching + the widget; these adapt
+// it to the selection / pagination / row-color state that lives here.
+
+// Search scope from the cell selection, Sheets-style: a block of 2+ cells
+// limits the search to it; a single cell (or nothing) searches every visible
+// column. A selection spanning the whole page's rows — what a column-header
+// click produces — means the whole column across ALL pages.
+function currentSearchScope(): SearchScope | null {
+  if (!gridApi) return null;
+  const api = gridApi;
+  const cols = displayedDataCols(api);
+  const total = api.getDisplayedRowCount();
+  const global: SearchScope = {
+    rowStart: 0,
+    rowEnd: total - 1,
+    colIds: cols.map((c) => c.getColId()),
+    allRows: true,
+    label: null,
+  };
+  const multi = selRowMin >= 0 && (selRowMax > selRowMin || selColIds.size > 1);
+  if (!multi || highlightModeEnabled) return global;
+  const selCols = cols.filter((c) => selColIds.has(c.getColId()));
+  if (selCols.length === 0) return global;
+  const page = pageRowBounds(api);
+  const allRows = selRowMin <= page.first && selRowMax >= page.last;
+  const allCols = selCols.length === cols.length;
+  if (allRows && allCols) return global;
+  let label: string;
+  if (allRows) {
+    label = selCols.length === 1 ? columnJumpLabel(selCols[0]) : `${selCols.length} columns`;
+  } else if (allCols) {
+    label = selRowMin === selRowMax ? `row ${selRowMin + 1}` : `rows ${selRowMin + 1}–${selRowMax + 1}`;
+  } else {
+    label = 'selection';
+  }
+  return {
+    rowStart: allRows ? 0 : selRowMin,
+    rowEnd: allRows ? total - 1 : selRowMax,
+    colIds: selCols.map((c) => c.getColId()),
+    allRows,
+    label,
+  };
+}
+
+// Bring a match into view: flip to its page, scroll to it, and — for a global
+// search — make it the active cell so arrows / Ctrl+C / the next search
+// continue from there. A scoped search leaves the selection (its scope) alone,
+// except that a whole-column selection follows the search onto the new page.
+function navigateToSearchMatch(row: number, colId: string, scope: SearchScope): void {
+  if (!gridApi) return;
+  const api = gridApi;
+  exitTextMode();
+  if (api.getGridOption('pagination')) {
+    const size = api.paginationGetPageSize();
+    const target = size > 0 ? Math.floor(row / size) : 0;
+    if (target !== api.paginationGetCurrentPage()) {
+      const before = pageRowBounds(api);
+      api.paginationGoToPage(target);
+      if (scope.label !== null && scope.allRows && rangeAnchor && rangeHead) {
+        const after = pageRowBounds(api);
+        const remap = (r: number): number => (r <= before.first ? after.first : after.last);
+        rangeAnchor = { ...rangeAnchor, rowIndex: remap(rangeAnchor.rowIndex) };
+        rangeHead = { ...rangeHead, rowIndex: remap(rangeHead.rowIndex) };
+      }
+    }
+  }
+  if (scope.label === null && !highlightModeEnabled) {
+    rangeAnchor = { rowIndex: row, colId };
+    rangeHead = { rowIndex: row, colId };
+  }
+  recomputeRangeDerived();
+  try {
+    api.ensureIndexVisible(row);
+    api.ensureColumnVisible(colId);
+  } catch {
+    // ensureIndexVisible can misfire on tiny unvirtualized grids — harmless.
+  }
+}
+
+// Paint (or, with null, un-paint) every row holding a match — the same
+// per-row click colors the color picker applies, so "Clear all" resets them.
+function colorSearchRows(rows: ArrayLike<number>, color: string | null): void {
+  if (!gridApi || mountedTabKey === null || mountedStmtIdx === null) return;
+  const stmt = tabs.get(mountedTabKey)?.perStatement.get(mountedStmtIdx);
+  if (!stmt) return;
+  for (let i = 0; i < rows.length; i++) {
+    const id = (gridApi.getDisplayedRowAtIndex(rows[i])?.data as { __rowId?: unknown } | undefined)
+      ?.__rowId;
+    if (typeof id !== 'number') continue;
+    if (color === null) stmt.clickColors.delete(id);
+    else stmt.clickColors.set(id, color as PaletteColor);
+  }
+  gridApi.redrawRows();
+}
+
+const searchHost: GridSearchHost = {
+  getApi: () => gridApi,
+  getColumnInfo: (colId) => {
+    const field = gridApi?.getColumn(colId)?.getColDef().field;
+    if (!field) return null;
+    return { field, type: mountedColumnTypes.get(field) ?? 'string' };
+  },
+  getScope: currentSearchScope,
+  getActiveCell: () =>
+    rangeAnchor ? { row: rangeAnchor.rowIndex, colId: rangeAnchor.colId } : null,
+  getPageFirstRow: () => (gridApi ? pageRowBounds(gridApi).first : 0),
+  navigate: navigateToSearchMatch,
+  palette: PALETTE,
+  colorRows: colorSearchRows,
+};
+
 // Tabs/newlines would corrupt the TSV grid; collapse them so the block pastes
 // as a clean rectangle. Mirrors the export's documented behaviour: tab → space,
 // newline → the literal two characters backslash-n.
@@ -2927,6 +3076,17 @@ function installRangeSelectionHandlers(): void {
   document.addEventListener('mouseup', () => {
     isDraggingRange = false;
     endPaintDrag();
+  });
+  // Ctrl/Cmd+F opens the grid find bar. Left alone inside the Monaco rule
+  // editor, which has its own find widget.
+  document.addEventListener('keydown', (e) => {
+    if (!(e.ctrlKey || e.metaKey) || e.shiftKey || e.altKey) return;
+    if (e.key !== 'f' && e.key !== 'F') return;
+    if (!gridApi || isRulesModalOpen()) return;
+    const t = e.target as HTMLElement | null;
+    if (t?.closest('.monaco-editor')) return;
+    e.preventDefault();
+    openSearch();
   });
   document.addEventListener('keydown', (e) => {
     if (highlightModeEnabled) return;
@@ -3305,6 +3465,8 @@ function disposeGrid(): void {
   mountedTabKey = null;
   mountedStmtIdx = null;
   mountedGridHost = null;
+  mountedColumnTypes = new Map();
+  detachGridSearch();
   // The comp that activeFilter pointed to is destroyed with the grid above;
   // a fresh afterGuiAttached on the next mount will re-register it.
   activeFilter = null;
@@ -3646,7 +3808,13 @@ function mountGrid(
     // Re-paint the footer columns-icon (eye / mixed-slash / full-slash)
     // whenever a column's visibility flips. Catches both popover toggles
     // and the built-in drag-out-to-hide gesture.
-    onColumnVisible: () => updateColumnsIcon(),
+    onColumnVisible: () => {
+      updateColumnsIcon();
+      notifySearchDataChanged();
+    },
+    // Column order drives the find bar's match order (row-major, left→right).
+    onColumnMoved: () => notifySearchDataChanged(),
+    onColumnPinned: () => notifySearchDataChanged(),
     // Fires on every filter change: column-header popover apply/clear,
     // setFilterModel from this file's clear-all button, or any other
     // programmatic mutation. Two responsibilities here:
@@ -3690,6 +3858,7 @@ function mountGrid(
       // on our custom comp does NOT fire onFilterChanged, so this is only
       // reached on a genuine user filter apply / clear.)
       clearRangeSelection();
+      notifySearchDataChanged();
     },
     // Render filter popups as direct children of document.body so our
     // modal-style filter (position: fixed backdrop + centered card) is not
@@ -3864,6 +4033,7 @@ function mountGrid(
       // during mount fires source 'api' and must NOT wipe the restored
       // selection; a user header click fires 'uiColumnSorted'.
       if (event.source === 'uiColumnSorted') clearRangeSelection();
+      notifySearchDataChanged();
     },
   };
 
@@ -3875,6 +4045,8 @@ function mountGrid(
   mountedTabKey = key;
   mountedStmtIdx = stmtIdx;
   mountedGridHost = host;
+  mountedColumnTypes = new Map(columns.map((c) => [c.field, c.type]));
+  attachGridSearch(searchHost);
 
   // Restore any saved per-column filters. The grid lazily instantiates each
   // column's filter on demand; setFilterModel forces instantiation and
@@ -4060,6 +4232,8 @@ function buildColDef(
       cellClassRules: {
         'sf-cell-selected': (p) => isCellSelected(p.rowIndex, p.column.getColId()),
         'sf-cell-active': (p) => isActiveCell(p.rowIndex, p.column.getColId()),
+        'sf-search-hit': (p) => isSearchHit(p.rowIndex, p.column.getColId(), p.data),
+        'sf-search-current': (p) => isSearchCurrent(p.rowIndex, p.column.getColId()),
       },
       headerClass: 'nested-header',
       ...headerComponentBlock,
@@ -4087,6 +4261,8 @@ function buildColDef(
       'null-cell': (p) => p.value === null || p.value === undefined,
       'sf-cell-selected': (p) => isCellSelected(p.rowIndex, p.column.getColId()),
       'sf-cell-active': (p) => isActiveCell(p.rowIndex, p.column.getColId()),
+      'sf-search-hit': (p) => isSearchHit(p.rowIndex, p.column.getColId(), p.data),
+      'sf-search-current': (p) => isSearchCurrent(p.rowIndex, p.column.getColId()),
     },
     tooltipValueGetter: cellTooltip,
     ...headerComponentBlock,
