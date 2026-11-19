@@ -13,6 +13,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   scripts, cancel, and the same result-size cap as BigQuery.
 - Default-warehouse routing for Shift+Enter and the Run buttons, plus per-warehouse Run
   commands that can each get their own shortcut, and a **Select Default Warehouse** command.
+- **Find bar** in the results grid (`Ctrl/Cmd+F` or the footer magnifier). Searches every
+  visible column across all pages, or only the selected cells.
+
+### Fixed
+- BigQuery's direct API calls now go through your proxy (`HTTPS_PROXY` or the gcloud CLI's
+  proxy setting) on corporate networks.
 
 ### Changed
 - Renamed the extension to **Warehouse Data Explorer** (display name only; the extension ID

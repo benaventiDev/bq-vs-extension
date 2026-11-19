@@ -6,6 +6,9 @@
 conditionally format, pin, filter, sort, and copy the results in a fast, spreadsheet-style
 grid — instead of exporting to CSV and opening Excel.
 
+> ❄️ **New: Snowflake support.** Uses the Snowflake connection you already have set up — see
+> [Snowflake](#snowflake-preview). Amazon Redshift support is in development.
+
 [![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/benaventi.bq-vs-extension?label=Marketplace)](https://marketplace.visualstudio.com/items?itemName=benaventi.bq-vs-extension)
 [![Installs](https://img.shields.io/visual-studio-marketplace/i/benaventi.bq-vs-extension)](https://marketplace.visualstudio.com/items?itemName=benaventi.bq-vs-extension)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -37,6 +40,8 @@ query output, not editing your warehouse.
 - ✨ **SQL formatter** — reformat BigQuery SQL (`Shift+Alt+F`, or `Ctrl+K Ctrl+B` / `Cmd+K Cmd+B`, or format-on-save).
 - 🧱 **Multi-statement scripts** — a console-style "All results" overview with per-statement
   timing and drill-in.
+- ❄️ **BigQuery and Snowflake** — one grid for both; Shift+Enter runs on your default
+  warehouse, and each warehouse has its own Run commands.
 - 📤 **Export** — CSV, Excel (`.xlsx`), JSON, or copy TSV to the clipboard.
 - 🔬 **Built for analysis** — nested STRUCT/ARRAY/JSON/BYTES rendering, pagination, panel zoom,
   light/dark themes, cell-range selection + copy, and full-fidelity temporal values.
@@ -378,8 +383,7 @@ extension loaded, then open a `.sql` file and press **Shift+Enter**. Package a `
 ## Roadmap
 
 Warehouse Data Explorer focuses on the **analysis** layer for query results. Not included today:
-query history, a dataset/project browser, dry-run cost preview, and streaming results. Support
-for additional warehouses is on the longer-term roadmap.
+query history, a dataset/project browser, dry-run cost preview, and streaming results.
 
 ## Support
 
