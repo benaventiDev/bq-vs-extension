@@ -54,7 +54,7 @@
       {
         "command": "bqVsExtension.runSelection",
         "title": "Run Selected Query",
-        "category": "SQL",
+        "category": "Warehouse Data Explorer",
         "icon": {
           "light": "media/run-selection-light.svg",
           "dark": "media/run-selection-dark.svg"
@@ -63,7 +63,7 @@
       {
         "command": "bqVsExtension.runFile",
         "title": "Run Query File",
-        "category": "SQL",
+        "category": "Warehouse Data Explorer",
         "icon": {
           "light": "media/run-file-light.svg",
           "dark": "media/run-file-dark.svg"
@@ -71,33 +71,33 @@
       },
       {
         "command": "bqVsExtension.runSelectionBigQuery",
-        "title": "Run Selected Query",
-        "category": "BigQuery"
+        "title": "Run Selected Query on BigQuery",
+        "category": "Warehouse Data Explorer"
       },
       {
         "command": "bqVsExtension.runFileBigQuery",
-        "title": "Run Query File",
-        "category": "BigQuery"
+        "title": "Run Query File on BigQuery",
+        "category": "Warehouse Data Explorer"
       },
       {
         "command": "bqVsExtension.runSelectionSnowflake",
-        "title": "Run Selected Query",
-        "category": "Snowflake"
+        "title": "Run Selected Query on Snowflake",
+        "category": "Warehouse Data Explorer"
       },
       {
         "command": "bqVsExtension.runFileSnowflake",
-        "title": "Run Query File",
-        "category": "Snowflake"
+        "title": "Run Query File on Snowflake",
+        "category": "Warehouse Data Explorer"
       },
       {
         "command": "bqVsExtension.selectDefaultEngine",
         "title": "Select Default Warehouse",
-        "category": "SQL"
+        "category": "Warehouse Data Explorer"
       },
       {
         "command": "bqVsExtension.formatSql",
         "title": "Format SQL",
-        "category": "SQL"
+        "category": "Warehouse Data Explorer"
       },
       {
         "command": "bqVsExtension.sponsor",

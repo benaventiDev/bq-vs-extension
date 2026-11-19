@@ -121,8 +121,8 @@ only connection.
 
 **Which warehouse does Shift+Enter use?** If only one is set up on your machine, that one.
 If both are, the first run asks and remembers the choice (`bqVsExtension.defaultEngine`,
-or **SQL: Select Default Warehouse** from the Command Palette). Each warehouse also has its
-own commands — *BigQuery: Run Selected Query*, *Snowflake: Run Query File*, … — that you can
+or **Warehouse Data Explorer: Select Default Warehouse** from the Command Palette). Each warehouse also has its
+own commands — *Run Selected Query on BigQuery*, *Run Query File on Snowflake*, … — that you can
 bind to separate shortcuts.
 
 Scripts run statement by statement on one session that's reused between runs, so
@@ -296,7 +296,7 @@ The extension registers a BigQuery-dialect SQL formatter (via
 [sql-formatter](https://github.com/sql-formatter-org/sql-formatter)) available three ways:
 
 - **Shift+Alt+F** — VS Code's standard "Format Document" (also right-click → Format Document).
-- **Ctrl+K Ctrl+B** (**Cmd+K Cmd+B**) — dedicated "SQL: Format SQL" that always uses this
+- **Ctrl+K Ctrl+B** (**Cmd+K Cmd+B**) — dedicated "Warehouse Data Explorer: Format SQL" that always uses this
   formatter even if another SQL formatter is your default. Also in the Command Palette.
 - **Format on save** — opt in with `"editor.formatOnSave": true`.
 

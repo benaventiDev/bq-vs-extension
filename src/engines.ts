@@ -70,7 +70,7 @@ async function saveDefault(id: EngineId, announce: boolean): Promise<void> {
   const shortcuts = 'Keyboard shortcuts';
   void vscode.window
     .showInformationMessage(
-      `${engineLabel(id)} set as default for Shift+Enter — change it anytime with the "SQL: Select Default Warehouse" command. Each warehouse also has its own Run commands you can bind to a different shortcut.`,
+      `${engineLabel(id)} set as default for Shift+Enter — change it anytime with the "Warehouse Data Explorer: Select Default Warehouse" command. Each warehouse also has its own Run commands you can bind to a different shortcut.`,
       openSetting,
       shortcuts,
     )

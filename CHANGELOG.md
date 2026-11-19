@@ -17,8 +17,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
 - Renamed the extension to **Warehouse Data Explorer** (display name only; the extension ID
   is unchanged, so existing installs and settings carry over).
-- Commands, Run buttons and the results panel no longer say BigQuery: *SQL: Run Selected
-  Query*, *SQL: Run Query File*, *SQL: Format SQL*, and a **Query Results** panel.
+- Commands, Run buttons and the results panel no longer say BigQuery. Every command is
+  grouped under *Warehouse Data Explorer* (*Run Selected Query*, *Run Query File*,
+  *Run Selected Query on Snowflake*, *Select Default Warehouse*, …), and the panel is
+  **Query Results**.
 - Rows-per-page selector adds 2,000 and 3,000.
 - TIMESTAMP columns with time-zone offsets sort and compare in formulas by instant.
 
