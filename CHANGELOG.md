@@ -4,7 +4,7 @@ All notable changes to **Warehouse Data Explorer** (formerly BigQuery Data Explo
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.5.0] - 2026-11-18
 
 ### Added
 - **Snowflake support (preview).** Runs on the connection you already have in
@@ -16,10 +16,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **Find bar** in the results grid (`Ctrl/Cmd+F` or the footer magnifier). Searches every
   visible column across all pages, or only the selected cells.
 
-### Fixed
-- BigQuery's direct API calls now go through your proxy (`HTTPS_PROXY` or the gcloud CLI's
-  proxy setting) on corporate networks.
-
 ### Changed
 - Renamed the extension to **Warehouse Data Explorer** (display name only; the extension ID
   is unchanged, so existing installs and settings carry over).
@@ -29,6 +25,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   **Query Results**.
 - Rows-per-page selector adds 2,000 and 3,000.
 - TIMESTAMP columns with time-zone offsets sort and compare in formulas by instant.
+
+### Fixed
+- BigQuery's direct API calls now go through your proxy (`HTTPS_PROXY` or the gcloud CLI's
+  proxy setting) on corporate networks.
 
 ## [0.4.0] - 2026-09-20
 
