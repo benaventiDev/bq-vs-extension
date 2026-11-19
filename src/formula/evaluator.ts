@@ -306,7 +306,10 @@ function parseIsoDate(s: string): Date | null {
   // three fractional digits — acceptable because formula comparisons that
   // would be sensitive to sub-millisecond differences aren't expressible
   // in the language anyway.
-  const m = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?(\s?UTC)?)?$/.exec(s);
+  // Snowflake TIMESTAMP_TZ / LTZ values carry an offset instead
+  // ('2024-02-29 13:45:12.123456789 -0800'); it's applied so the instant,
+  // not the wall clock, is compared.
+  const m = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?(?:\s?(?:UTC|Z)|\s?([+-])(\d{2}):?(\d{2}))?)?$/.exec(s);
   if (!m) return null;
   const year = Number(m[1]);
   const mon = Number(m[2]);
@@ -319,7 +322,8 @@ function parseIsoDate(s: string): Date | null {
   const ss = Number(m[6]);
   const frac = m[7] ?? '';
   const ms = frac ? Number((frac + '000').slice(0, 3)) : 0;
-  return new Date(Date.UTC(year, mon - 1, day, hh, mm, ss, ms));
+  const offsetMin = m[8] ? (m[8] === '-' ? -1 : 1) * (Number(m[9]) * 60 + Number(m[10])) : 0;
+  return new Date(Date.UTC(year, mon - 1, day, hh, mm, ss, ms) - offsetMin * 60000);
 }
 
 function evalCall(

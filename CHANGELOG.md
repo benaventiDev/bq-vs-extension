@@ -1,8 +1,34 @@
 # Changelog
 
-All notable changes to **BigQuery Data Explorer** are documented here. The format is
+All notable changes to **Warehouse Data Explorer** (formerly BigQuery Data Explorer) are documented here. The format is
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.5.0] - 2026-11-18
+
+### Added
+- **Snowflake support (preview).** Runs on the connection you already have in
+  `connections.toml` / `config.toml` (any login method), with exact numbers, full-precision
+  timestamps and times, VARIANT / OBJECT / ARRAY in the nested viewers, statement-by-statement
+  scripts, cancel, and the same result-size cap as BigQuery.
+- Default-warehouse routing for Shift+Enter and the Run buttons, plus per-warehouse Run
+  commands that can each get their own shortcut, and a **Select Default Warehouse** command.
+- **Find bar** in the results grid (`Ctrl/Cmd+F` or the footer magnifier). Searches every
+  visible column across all pages, or only the selected cells.
+
+### Changed
+- Renamed the extension to **Warehouse Data Explorer** (display name only; the extension ID
+  is unchanged, so existing installs and settings carry over).
+- Commands, Run buttons and the results panel no longer say BigQuery. Every command is
+  grouped under *Warehouse Data Explorer* (*Run Selected Query*, *Run Query File*,
+  *Run Selected Query on Snowflake*, *Select Default Warehouse*, …), and the panel is
+  **Query Results**.
+- Rows-per-page selector adds 2,000 and 3,000.
+- TIMESTAMP columns with time-zone offsets sort and compare in formulas by instant.
+
+### Fixed
+- BigQuery's direct API calls now go through your proxy (`HTTPS_PROXY` or the gcloud CLI's
+  proxy setting) on corporate networks.
 
 ## [0.4.0] - 2026-09-20
 

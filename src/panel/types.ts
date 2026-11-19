@@ -10,9 +10,12 @@ import type { Rule } from './rules/rulesStore';
  */
 export interface TimingInfo {
   totalMs: number;
+  /** BigQuery: dry-run round-trip. Snowflake: time to open/reuse the session. */
   dryMs: number;
   realMs: number;
   parseMs: number;
+  /** Which warehouse produced the result; absent = BigQuery. */
+  engine?: 'bigquery' | 'snowflake';
 }
 
 /**

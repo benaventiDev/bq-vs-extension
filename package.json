@@ -1,8 +1,8 @@
 {
   "name": "bq-vs-extension",
-  "displayName": "BigQuery Data Explorer",
-  "description": "Analyze query results in your editor — highlight, conditionally format, pin, filter, sort, and copy in a spreadsheet-style grid instead of exporting to Excel. BigQuery support built in.",
-  "version": "0.4.0",
+  "displayName": "Warehouse Data Explorer",
+  "description": "Analyze query results in your editor — highlight, conditionally format, pin, filter, sort, and copy in a spreadsheet-style grid instead of exporting to Excel. Works with BigQuery and Snowflake.",
+  "version": "0.5.0",
   "publisher": "benaventi",
   "author": {
     "name": "Benaventi"
@@ -25,6 +25,8 @@
     "bq",
     "sql",
     "gcp",
+    "snowflake",
+    "data warehouse",
     "conditional formatting",
     "data grid",
     "spreadsheet",
@@ -51,8 +53,8 @@
     "commands": [
       {
         "command": "bqVsExtension.runSelection",
-        "title": "BigQuery: Run Selection",
-        "category": "BigQuery",
+        "title": "Run Selected Query",
+        "category": "Warehouse Data Explorer",
         "icon": {
           "light": "media/run-selection-light.svg",
           "dark": "media/run-selection-dark.svg"
@@ -60,27 +62,52 @@
       },
       {
         "command": "bqVsExtension.runFile",
-        "title": "BigQuery: Run File",
-        "category": "BigQuery",
+        "title": "Run Query File",
+        "category": "Warehouse Data Explorer",
         "icon": {
           "light": "media/run-file-light.svg",
           "dark": "media/run-file-dark.svg"
         }
       },
       {
+        "command": "bqVsExtension.runSelectionBigQuery",
+        "title": "Run Selected Query on BigQuery",
+        "category": "Warehouse Data Explorer"
+      },
+      {
+        "command": "bqVsExtension.runFileBigQuery",
+        "title": "Run Query File on BigQuery",
+        "category": "Warehouse Data Explorer"
+      },
+      {
+        "command": "bqVsExtension.runSelectionSnowflake",
+        "title": "Run Selected Query on Snowflake",
+        "category": "Warehouse Data Explorer"
+      },
+      {
+        "command": "bqVsExtension.runFileSnowflake",
+        "title": "Run Query File on Snowflake",
+        "category": "Warehouse Data Explorer"
+      },
+      {
+        "command": "bqVsExtension.selectDefaultEngine",
+        "title": "Select Default Warehouse",
+        "category": "Warehouse Data Explorer"
+      },
+      {
         "command": "bqVsExtension.formatSql",
-        "title": "BigQuery: Format SQL",
-        "category": "BigQuery"
+        "title": "Format SQL",
+        "category": "Warehouse Data Explorer"
       },
       {
         "command": "bqVsExtension.sponsor",
         "title": "Sponsor",
-        "category": "BigQuery"
+        "category": "Warehouse Data Explorer"
       },
       {
         "command": "bqVsExtension.previewSponsorNudge",
         "title": "Preview Sponsor Message",
-        "category": "BigQuery"
+        "category": "Warehouse Data Explorer"
       }
     ],
     "menus": {
@@ -111,7 +138,7 @@
       }
     ],
     "configuration": {
-      "title": "BigQuery Data Explorer",
+      "title": "Warehouse Data Explorer",
       "properties": {
         "bqVsExtension.format.keywordCase": {
           "type": "string",
@@ -144,6 +171,26 @@
           "maximum": 5,
           "description": "Blank lines inserted between separate SQL statements when formatting a multi-statement script."
         },
+        "bqVsExtension.defaultEngine": {
+          "type": "string",
+          "enum": [
+            "",
+            "bigquery",
+            "snowflake"
+          ],
+          "enumDescriptions": [
+            "Automatic: use the only warehouse set up on this machine, or ask once when there are several.",
+            "BigQuery (uses your gcloud / bq setup).",
+            "Snowflake (uses your connections.toml / config.toml setup)."
+          ],
+          "default": "",
+          "markdownDescription": "Warehouse used by **Shift+Enter** and the Run buttons. Each warehouse also has its own commands (e.g. `Snowflake: Run Selection on Snowflake`) that you can bind to a different shortcut in [Keyboard Shortcuts](command:workbench.action.openGlobalKeybindings)."
+        },
+        "bqVsExtension.snowflake.connection": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Snowflake connection name from your `connections.toml` to use. Leave empty to follow your Snowflake setup (`SNOWFLAKE_DEFAULT_CONNECTION_NAME`, then `default_connection_name` in `config.toml`, then a connection named `default`, then the only connection). The extension never stores credentials; it reads the same files as the Snowflake CLI and drivers."
+        },
         "bqVsExtension.showSponsorNudge": {
           "type": "boolean",
           "default": true,
@@ -160,7 +207,7 @@
       "panel": [
         {
           "id": "bqVsExtensionPanel",
-          "title": "BigQuery Results",
+          "title": "Query Results",
           "icon": "$(database)"
         }
       ]
@@ -179,6 +226,8 @@
     "compile": "node esbuild.js",
     "watch": "node esbuild.js --watch",
     "typecheck": "tsc --noEmit",
+    "test": "node scripts/test.js",
+    "test:live": "node scripts/test.js --live",
     "vscode:prepublish": "node esbuild.js --production",
     "package": "vsce package --no-dependencies --no-yarn",
     "release": "node scripts/release.js"
@@ -196,7 +245,10 @@
     "exceljs": "^4.4.0",
     "google-auth-library": "^10.7.0",
     "monaco-editor": "^0.55.1",
+    "smol-toml": "^1.9.1",
+    "snowflake-sdk": "^3.4.1",
     "sql-formatter": "^15.8.0",
-    "tree-kill": "^1.2.2"
+    "tree-kill": "^1.2.2",
+    "undici": "^6.29.1"
   }
 }
