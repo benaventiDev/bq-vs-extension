@@ -5,6 +5,9 @@ src/**
 node_modules/**
 session-notes/**
 scripts/**
+test/**
+out-test/**
+scratchpad/**
 media/previews/**
 .gitignore
 .git/**

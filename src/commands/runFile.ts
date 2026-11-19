@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 import { runSqlForUri } from './runSelection';
 import type { ResultViewProvider } from '../panel/resultViewProvider';
+import type { EngineId } from '../engines';
 
-export async function runFileCommand(provider: ResultViewProvider): Promise<void> {
+export async function runFileCommand(provider: ResultViewProvider, engine?: EngineId): Promise<void> {
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
     return;
@@ -16,5 +17,5 @@ export async function runFileCommand(provider: ResultViewProvider): Promise<void
     return;
   }
 
-  await runSqlForUri(provider, doc.uri, fileText);
+  await runSqlForUri(provider, doc.uri, fileText, engine);
 }

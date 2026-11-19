@@ -5,6 +5,8 @@ import { runFileCommand } from './commands/runFile';
 import { RulesStore, isSqlFileUri } from './panel/rules/rulesStore';
 import { registerFormatter } from './format/registerFormatter';
 import { showSponsorNudgeNow, openSponsorPage } from './sponsor';
+import { chooseDefaultEngineCommand } from './engines';
+import { disposeAllConnections } from './snowflake/client';
 
 /** Extract the document URI a tab points at, if it's a text-like tab. */
 function uriFromTab(tab: vscode.Tab): vscode.Uri | undefined {
@@ -35,12 +37,16 @@ export function activate(context: vscode.ExtensionContext): void {
     }),
   );
 
+  // Generic Run commands go to the default engine (see engines.ts); each
+  // warehouse also has its own pair so users can bind separate shortcuts.
   context.subscriptions.push(
     vscode.commands.registerCommand('bqVsExtension.runSelection', () => runSelectionCommand(provider)),
-  );
-
-  context.subscriptions.push(
     vscode.commands.registerCommand('bqVsExtension.runFile', () => runFileCommand(provider)),
+    vscode.commands.registerCommand('bqVsExtension.runSelectionBigQuery', () => runSelectionCommand(provider, 'bigquery')),
+    vscode.commands.registerCommand('bqVsExtension.runFileBigQuery', () => runFileCommand(provider, 'bigquery')),
+    vscode.commands.registerCommand('bqVsExtension.runSelectionSnowflake', () => runSelectionCommand(provider, 'snowflake')),
+    vscode.commands.registerCommand('bqVsExtension.runFileSnowflake', () => runFileCommand(provider, 'snowflake')),
+    vscode.commands.registerCommand('bqVsExtension.selectDefaultEngine', () => chooseDefaultEngineCommand()),
   );
 
   // M12 — SQL formatter (BigQuery dialect). Registers the
@@ -117,5 +123,6 @@ export function activate(context: vscode.ExtensionContext): void {
 }
 
 export function deactivate(): void {
-  // nothing
+  // Close any open Snowflake sessions.
+  disposeAllConnections();
 }

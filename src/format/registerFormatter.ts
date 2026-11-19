@@ -57,7 +57,7 @@ export function registerFormatter(context: vscode.ExtensionContext): void {
         doc.languageId === 'sql' || doc.uri.fsPath.toLowerCase().endsWith('.sql');
       if (!isSqlDoc) {
         void vscode.window.showWarningMessage(
-          'BigQuery: Format SQL only formats SQL files.',
+          'Format SQL only formats SQL files.',
         );
         return;
       }

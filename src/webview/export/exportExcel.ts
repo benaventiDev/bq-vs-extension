@@ -17,7 +17,7 @@ export async function buildExcelBytes(
   rows: ParsedRow[],
 ): Promise<Uint8Array> {
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = 'BigQuery Runner';
+  workbook.creator = 'Warehouse Data Explorer';
   workbook.created = new Date();
 
   const sheet = workbook.addWorksheet('Result');

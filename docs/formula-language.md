@@ -53,13 +53,13 @@ If those parse on first read, you already know the language. Skim the rest for e
 
 ## Syntax notes
 
-**Column references.** Reference columns by name. Bare identifiers like `num_col` are fine; columns with spaces or special characters use backticks — the same way you quote them in BigQuery SQL: `` `my column` ``. Column matching is case-insensitive. (Quotes — `"..."` or `'...'` — are always string literals, never column references.)
+**Column references.** Reference columns by name. Bare identifiers like `num_col` are fine; columns with spaces or special characters use backticks: `` `my column` ``. Column matching is case-insensitive. (Quotes — `"..."` or `'...'` — are always string literals, never column references.)
 
-**Literals.** Numbers (`100`, `3.14`, `-5`), strings in either double or single quotes (`"hello"`, `'hello'` — both work, as in BigQuery), booleans `TRUE` / `FALSE`, and `NULL`. A doubled quote escapes a literal quote inside a string (`"she said ""hi"""`).
+**Literals.** Numbers (`100`, `3.14`, `-5`), strings in either double or single quotes (`"hello"`, `'hello'` — both work), booleans `TRUE` / `FALSE`, and `NULL`. A doubled quote escapes a literal quote inside a string (`"she said ""hi"""`).
 
 **NULL handling.** Any comparison with NULL evaluates to NULL, which is treated as falsy in rule context (rule does not match). Use `ISNULL(x)` or `ISBLANK(x)` to test explicitly.
 
-**Type comparisons.** Comparisons between different types (e.g. number vs string) evaluate as not-equal — there is no silent coercion. Temporal cells (DATE / DATETIME / TIMESTAMP / TIME) are stored as the raw BigQuery string and auto-coerced when compared against a DATE("...") literal — the language accepts every shape BQ emits, including timestamps with microseconds and ` UTC` suffix.
+**Type comparisons.** Comparisons between different types (e.g. number vs string) evaluate as not-equal — there is no silent coercion. Temporal cells (DATE / DATETIME / TIMESTAMP / TIME) are stored as the raw warehouse string and auto-coerced when compared against a DATE("...") literal — the language accepts every shape BigQuery and Snowflake return, including fractional seconds, a ` UTC` suffix, or a Snowflake offset like ` -0800` (compared by instant).
 
 ## Operators
 
@@ -171,7 +171,7 @@ Returns the string uppercased.
 
 #### `YEAR(date_or_timestamp)`
 
-Returns the 4-digit year of a DATE / DATETIME / TIMESTAMP value. Temporal cells are stored as the raw BigQuery string (e.g. "2026-04-15 18:17:12.418000 UTC") and parsed on demand, anchored to UTC.
+Returns the 4-digit year of a DATE / DATETIME / TIMESTAMP value. Temporal cells are stored as the raw string the warehouse returned (e.g. "2026-04-15 18:17:12.418000 UTC" from BigQuery, "2026-04-15 11:17:12.418 -0700" from Snowflake) and parsed on demand, anchored to UTC.
 
 **Example:** `YEAR(date_col) = 2026`
 
@@ -195,7 +195,7 @@ Returns today's date (DATE, no time component).
 
 #### `DATE(iso_string)`
 
-Parses a temporal string into a DATE value (anchored to UTC). Accepts the same shapes BigQuery emits: YYYY-MM-DD, YYYY-MM-DDTHH:MM:SS[.ffffff], YYYY-MM-DD HH:MM:SS[.ffffff] [UTC]. Useful when comparing temporal columns against literal date strings.
+Parses a temporal string into a DATE value (anchored to UTC). Accepts the shapes BigQuery and Snowflake return: YYYY-MM-DD, YYYY-MM-DDTHH:MM:SS[.fffffffff], YYYY-MM-DD HH:MM:SS[.fffffffff] [UTC | ±HHMM]. Useful when comparing temporal columns against literal date strings.
 
 **Example:** `date_col = DATE("2026-05-20")`
 
@@ -217,7 +217,7 @@ TRUE when the value is NULL or an empty string. Mirrors Excel/Sheets behavior.
 
 #### `COUNTIF(column_ref, criterion)`
 
-Counts rows in the current result where `column_ref` matches the criterion. The first argument must be a bare column reference (not an expression). The criterion can be a direct value (equality), a string starting with a comparison operator like `">30"` / `"<=100"` / `"<>x"`, or a string with wildcards (`*` `?` `%` `_`) for pattern matching. NULL values never match. Use `\` to escape wildcards: `"abc\*"` matches the literal string `abc*`.
+Counts rows in the current result where `column_ref` matches the criterion. The first argument must be a bare column reference (not an expression). The criterion can be a direct value (equality), a string starting with a comparison operator like `">30"` / `"<=100"` / `"<>x"`, or a string with wildcards (`*` `?` `%` `_`) for pattern matching. `=` and `<>` combine with wildcards (e.g. `"<>vip*"` counts rows not matching vip*); ordered operators (`>` `<` `>=` `<=`) take the operand literally. NULL values never match. Use `\` to escape wildcards: `"abc\*"` matches the literal string `abc*`.
 
 **Example:** `COUNTIF(str_col, str_col) > 30`
 
@@ -313,10 +313,8 @@ COUNTIF(num_col, ">=300")
 COUNTIF(str_col, "<>active")         -- str_col is not "active"
 COUNTIF(date_col, ">2026-01-01")     -- DATE column > 2026-01-01
 COUNTIF(str_col, "=active")          -- explicit equality (same as direct value)
-COUNTIF(str_col, "<>vip*")           -- str_col does NOT match the pattern vip*
-COUNTIF(str_col, "=*foo")            -- str_col matches the pattern *foo
 ```
-`=` and `<>` combine with wildcards: a wildcard operand is matched as a pattern (`<>` means "does not match"). This is the only way to count rows that *don't* match a pattern. The ordered operators (`>`, `<`, `>=`, `<=`) take the operand literally — wildcards are meaningless for an ordered comparison, so `">active*"` means "greater than the literal string `active*`".
+No wildcards in this mode — `">active*"` means "greater than the literal string `active*`", which is rarely useful but well-defined.
 
 ### 3. Wildcard string → pattern match
 A string containing `*`, `?`, `%`, or `_` is treated as a wildcard pattern. Sheets-style and SQL-style wildcards are interchangeable:
