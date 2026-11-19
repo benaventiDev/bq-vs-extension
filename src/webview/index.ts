@@ -88,7 +88,7 @@ interface VsCodeApi {
 declare function acquireVsCodeApi(): VsCodeApi;
 const vscode = acquireVsCodeApi();
 
-const PAGE_SIZES = [100, 200, 1000] as const;
+const PAGE_SIZES = [100, 200, 1000, 2000, 3000] as const;
 type PageSize = (typeof PAGE_SIZES)[number];
 
 const PALETTE = [
@@ -634,10 +634,11 @@ function defaultPageSize(total: number): PageSize | null {
   return 1000;
 }
 
+// Offer each size up to the first one that fits every row (e.g. 1,500 rows →
+// 100 / 200 / 1,000 / 2,000); larger sizes would just repeat that last page.
 function applicablePageSizes(total: number): PageSize[] {
   if (total <= 100) return [];
-  if (total <= 200) return [100, 200];
-  return [100, 200, 1000];
+  return PAGE_SIZES.filter((_, i) => i === 0 || PAGE_SIZES[i - 1] < total);
 }
 
 function gridThemeClass(): string {

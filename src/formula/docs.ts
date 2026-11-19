@@ -137,7 +137,7 @@ export const FUNCTIONS: FunctionDoc[] = [
     category: 'date',
     signature: 'YEAR(date_or_timestamp)',
     description:
-      'Returns the 4-digit year of a DATE / DATETIME / TIMESTAMP value. Temporal cells are stored as the raw BigQuery string (e.g. "2026-04-15 18:17:12.418000 UTC") and parsed on demand, anchored to UTC.',
+      'Returns the 4-digit year of a DATE / DATETIME / TIMESTAMP value. Temporal cells are stored as the raw string the warehouse returned (e.g. "2026-04-15 18:17:12.418000 UTC" from BigQuery, "2026-04-15 11:17:12.418 -0700" from Snowflake) and parsed on demand, anchored to UTC.',
     example: 'YEAR(date_col) = 2026',
     minArity: 1,
     maxArity: 1,
@@ -175,7 +175,7 @@ export const FUNCTIONS: FunctionDoc[] = [
     category: 'date',
     signature: 'DATE(iso_string)',
     description:
-      'Parses a temporal string into a DATE value (anchored to UTC). Accepts the same shapes BigQuery emits: YYYY-MM-DD, YYYY-MM-DDTHH:MM:SS[.ffffff], YYYY-MM-DD HH:MM:SS[.ffffff] [UTC]. Useful when comparing temporal columns against literal date strings.',
+      'Parses a temporal string into a DATE value (anchored to UTC). Accepts the shapes BigQuery and Snowflake return: YYYY-MM-DD, YYYY-MM-DDTHH:MM:SS[.fffffffff], YYYY-MM-DD HH:MM:SS[.fffffffff] [UTC | ±HHMM]. Useful when comparing temporal columns against literal date strings.',
     example: 'date_col = DATE("2026-05-20")',
     minArity: 1,
     maxArity: 1,
@@ -265,7 +265,7 @@ export const SYNTAX_NOTES: { title: string; body: string }[] = [
   },
   {
     title: 'Type comparisons',
-    body: 'Comparisons between different types (e.g. number vs string) evaluate as not-equal — there is no silent coercion. Temporal cells (DATE / DATETIME / TIMESTAMP / TIME) are stored as the raw BigQuery string and auto-coerced when compared against a DATE("...") literal — the language accepts every shape BQ emits, including timestamps with microseconds and ` UTC` suffix.',
+    body: 'Comparisons between different types (e.g. number vs string) evaluate as not-equal — there is no silent coercion. Temporal cells (DATE / DATETIME / TIMESTAMP / TIME) are stored as the raw warehouse string and auto-coerced when compared against a DATE("...") literal — the language accepts every shape BigQuery and Snowflake return, including fractional seconds, a ` UTC` suffix, or a Snowflake offset like ` -0800` (compared by instant).',
   },
 ];
 

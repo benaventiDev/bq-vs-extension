@@ -205,7 +205,7 @@
       "panel": [
         {
           "id": "bqVsExtensionPanel",
-          "title": "BigQuery Results",
+          "title": "Query Results",
           "icon": "$(database)"
         }
       ]
