@@ -53,9 +53,9 @@ If those parse on first read, you already know the language. Skim the rest for e
 
 ## Syntax notes
 
-**Column references.** Reference columns by name. Bare identifiers like `num_col` are fine; columns with spaces or special characters use backticks — the same way you quote them in BigQuery SQL: `` `my column` ``. Column matching is case-insensitive. (Quotes — `"..."` or `'...'` — are always string literals, never column references.)
+**Column references.** Reference columns by name. Bare identifiers like `num_col` are fine; columns with spaces or special characters use backticks: `` `my column` ``. Column matching is case-insensitive. (Quotes — `"..."` or `'...'` — are always string literals, never column references.)
 
-**Literals.** Numbers (`100`, `3.14`, `-5`), strings in either double or single quotes (`"hello"`, `'hello'` — both work, as in BigQuery), booleans `TRUE` / `FALSE`, and `NULL`. A doubled quote escapes a literal quote inside a string (`"she said ""hi"""`).
+**Literals.** Numbers (`100`, `3.14`, `-5`), strings in either double or single quotes (`"hello"`, `'hello'` — both work), booleans `TRUE` / `FALSE`, and `NULL`. A doubled quote escapes a literal quote inside a string (`"she said ""hi"""`).
 
 **NULL handling.** Any comparison with NULL evaluates to NULL, which is treated as falsy in rule context (rule does not match). Use `ISNULL(x)` or `ISBLANK(x)` to test explicitly.
 

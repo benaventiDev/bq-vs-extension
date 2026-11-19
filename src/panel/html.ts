@@ -36,7 +36,7 @@ export function buildHtml(webview: vscode.Webview, extensionUri: vscode.Uri): st
     <meta charset="UTF-8" />
     <meta http-equiv="Content-Security-Policy" content="${csp}" />
     <link rel="stylesheet" href="${styleUri}" />
-    <title>BigQuery Results</title>
+    <title>Query Results</title>
   </head>
   <body>
     <div id="root"></div>

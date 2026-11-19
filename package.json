@@ -1,7 +1,7 @@
 {
   "name": "bq-vs-extension",
-  "displayName": "BigQuery Data Explorer",
-  "description": "Analyze query results in your editor — highlight, conditionally format, pin, filter, sort, and copy in a spreadsheet-style grid instead of exporting to Excel. BigQuery support built in.",
+  "displayName": "Warehouse Data Explorer",
+  "description": "Analyze query results in your editor — highlight, conditionally format, pin, filter, sort, and copy in a spreadsheet-style grid instead of exporting to Excel. Works with BigQuery and Snowflake.",
   "version": "0.3.2",
   "publisher": "benaventi",
   "author": {
@@ -25,6 +25,8 @@
     "bq",
     "sql",
     "gcp",
+    "snowflake",
+    "data warehouse",
     "conditional formatting",
     "data grid",
     "spreadsheet",
@@ -51,8 +53,8 @@
     "commands": [
       {
         "command": "bqVsExtension.runSelection",
-        "title": "BigQuery: Run Selection",
-        "category": "BigQuery",
+        "title": "Run Selected Query",
+        "category": "SQL",
         "icon": {
           "light": "media/run-selection-light.svg",
           "dark": "media/run-selection-dark.svg"
@@ -60,8 +62,8 @@
       },
       {
         "command": "bqVsExtension.runFile",
-        "title": "BigQuery: Run File",
-        "category": "BigQuery",
+        "title": "Run Query File",
+        "category": "SQL",
         "icon": {
           "light": "media/run-file-light.svg",
           "dark": "media/run-file-dark.svg"
@@ -69,43 +71,43 @@
       },
       {
         "command": "bqVsExtension.runSelectionBigQuery",
-        "title": "Run Selection on BigQuery",
+        "title": "Run Selected Query",
         "category": "BigQuery"
       },
       {
         "command": "bqVsExtension.runFileBigQuery",
-        "title": "Run File on BigQuery",
+        "title": "Run Query File",
         "category": "BigQuery"
       },
       {
         "command": "bqVsExtension.runSelectionSnowflake",
-        "title": "Run Selection on Snowflake",
+        "title": "Run Selected Query",
         "category": "Snowflake"
       },
       {
         "command": "bqVsExtension.runFileSnowflake",
-        "title": "Run File on Snowflake",
+        "title": "Run Query File",
         "category": "Snowflake"
       },
       {
         "command": "bqVsExtension.selectDefaultEngine",
         "title": "Select Default Warehouse",
-        "category": "BigQuery Data Explorer"
+        "category": "SQL"
       },
       {
         "command": "bqVsExtension.formatSql",
-        "title": "BigQuery: Format SQL",
-        "category": "BigQuery"
+        "title": "Format SQL",
+        "category": "SQL"
       },
       {
         "command": "bqVsExtension.sponsor",
         "title": "Sponsor",
-        "category": "BigQuery"
+        "category": "Warehouse Data Explorer"
       },
       {
         "command": "bqVsExtension.previewSponsorNudge",
         "title": "Preview Sponsor Message",
-        "category": "BigQuery"
+        "category": "Warehouse Data Explorer"
       }
     ],
     "menus": {
@@ -136,7 +138,7 @@
       }
     ],
     "configuration": {
-      "title": "BigQuery Data Explorer",
+      "title": "Warehouse Data Explorer",
       "properties": {
         "bqVsExtension.format.keywordCase": {
           "type": "string",

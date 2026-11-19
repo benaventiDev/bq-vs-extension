@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to **BigQuery Data Explorer** are documented here. The format is
+All notable changes to **Warehouse Data Explorer** (formerly BigQuery Data Explorer) are documented here. The format is
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
@@ -15,6 +15,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   commands that can each get their own shortcut, and a **Select Default Warehouse** command.
 
 ### Changed
+- Renamed the extension to **Warehouse Data Explorer** (display name only; the extension ID
+  is unchanged, so existing installs and settings carry over).
+- Commands, Run buttons and the results panel no longer say BigQuery: *SQL: Run Selected
+  Query*, *SQL: Run Query File*, *SQL: Format SQL*, and a **Query Results** panel.
+- Rows-per-page selector adds 2,000 and 3,000.
 - TIMESTAMP columns with time-zone offsets sort and compare in formulas by instant.
 
 ## [0.3.2] - 2026-07-14

@@ -1,8 +1,8 @@
-# BigQuery Data Explorer
+# Warehouse Data Explorer
 
 > 💛 **Enjoying this extension?** [**❤️ Sponsor its development**](https://github.com/sponsors/benaventiDev) — sponsorships keep it free, maintained, and improving.
 
-**Analyze your BigQuery results without leaving VS Code.** Run a query, then highlight,
+**Analyze your BigQuery and Snowflake results without leaving VS Code.** Run a query, then highlight,
 conditionally format, pin, filter, sort, and copy the results in a fast, spreadsheet-style
 grid — instead of exporting to CSV and opening Excel.
 
@@ -10,7 +10,7 @@ grid — instead of exporting to CSV and opening Excel.
 [![Installs](https://img.shields.io/visual-studio-marketplace/i/benaventi.bq-vs-extension)](https://marketplace.visualstudio.com/items?itemName=benaventi.bq-vs-extension)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-![The BigQuery Data Explorer grid showing query results in VS Code's bottom panel](https://raw.githubusercontent.com/benaventiDev/bq-vs-extension/main/images/hero.png)
+![The Warehouse Data Explorer grid showing query results in VS Code's bottom panel](https://raw.githubusercontent.com/benaventiDev/bq-vs-extension/main/images/hero.png)
 
 Open a `.sql` file, select a query, press **Shift+Enter** — the result appears in an
 Excel-like grid in the bottom panel. The panel always shows the result for whichever `.sql`
@@ -69,7 +69,7 @@ columns you want to keep in view as you scroll.
 
 ## Install
 
-**From the Marketplace:** search **"BigQuery Data Explorer"** in the Extensions view
+**From the Marketplace:** search **"Warehouse Data Explorer"** in the Extensions view
 (`Ctrl+Shift+X`), or install from the
 [Marketplace page](https://marketplace.visualstudio.com/items?itemName=benaventi.bq-vs-extension).
 
@@ -121,9 +121,9 @@ only connection.
 
 **Which warehouse does Shift+Enter use?** If only one is set up on your machine, that one.
 If both are, the first run asks and remembers the choice (`bqVsExtension.defaultEngine`,
-or **Select Default Warehouse** from the Command Palette). Each warehouse also has its own
-commands — *Run Selection on BigQuery / on Snowflake*, *Run File on …* — that you can bind
-to separate shortcuts.
+or **SQL: Select Default Warehouse** from the Command Palette). Each warehouse also has its
+own commands — *BigQuery: Run Selected Query*, *Snowflake: Run Query File*, … — that you can
+bind to separate shortcuts.
 
 Scripts run statement by statement on one session that's reused between runs, so
 `USE DATABASE`, session variables and temp tables carry over like in a worksheet.
@@ -136,8 +136,8 @@ Scripts run statement by statement on one session that's reused between runs, so
 3. Press **Shift+Enter**. The **BigQuery Results** view opens in the bottom panel with your
    result — sortable, filterable, colorable.
 
-Two icon buttons also appear in the editor title bar on `.sql` files: **▶ Run Selection**
-(same as Shift+Enter) and **⏵⏵ Run File** (sends the whole file).
+Two icon buttons also appear in the editor title bar on `.sql` files: **▶ Run Selected Query**
+(same as Shift+Enter) and **⏵⏵ Run Query File** (sends the whole file).
 
 Want to try it against public data? Any query works, e.g.:
 
@@ -296,7 +296,7 @@ The extension registers a BigQuery-dialect SQL formatter (via
 [sql-formatter](https://github.com/sql-formatter-org/sql-formatter)) available three ways:
 
 - **Shift+Alt+F** — VS Code's standard "Format Document" (also right-click → Format Document).
-- **Ctrl+K Ctrl+B** (**Cmd+K Cmd+B**) — dedicated "BigQuery: Format SQL" that always uses this
+- **Ctrl+K Ctrl+B** (**Cmd+K Cmd+B**) — dedicated "SQL: Format SQL" that always uses this
   formatter even if another SQL formatter is your default. Also in the Command Palette.
 - **Format on save** — opt in with `"editor.formatOnSave": true`.
 
@@ -377,13 +377,13 @@ extension loaded, then open a `.sql` file and press **Shift+Enter**. Package a `
 
 ## Roadmap
 
-BigQuery Data Explorer focuses on the **analysis** layer for query results. Not included today:
+Warehouse Data Explorer focuses on the **analysis** layer for query results. Not included today:
 query history, a dataset/project browser, dry-run cost preview, and streaming results. Support
 for additional warehouses is on the longer-term roadmap.
 
 ## Support
 
-If BigQuery Data Explorer saves you time, please consider **[sponsoring its development](https://github.com/sponsors/benaventiDev)** 💛 — it keeps the extension free and actively maintained.
+If Warehouse Data Explorer saves you time, please consider **[sponsoring its development](https://github.com/sponsors/benaventiDev)** 💛 — it keeps the extension free and actively maintained.
 
 [![Sponsor on GitHub](https://img.shields.io/badge/Sponsor-%E2%9D%A4-ea4aaa?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/benaventiDev)
 
