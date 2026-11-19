@@ -4,6 +4,19 @@ All notable changes to **BigQuery Data Explorer** are documented here. The forma
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Snowflake support (preview).** Runs on the connection you already have in
+  `connections.toml` / `config.toml` (any login method), with exact numbers, full-precision
+  timestamps and times, VARIANT / OBJECT / ARRAY in the nested viewers, statement-by-statement
+  scripts, cancel, and the same result-size cap as BigQuery.
+- Default-warehouse routing for Shift+Enter and the Run buttons, plus per-warehouse Run
+  commands that can each get their own shortcut, and a **Select Default Warehouse** command.
+
+### Changed
+- TIMESTAMP columns with time-zone offsets sort and compare in formulas by instant.
+
 ## [0.3.2] - 2026-07-14
 
 ### Changed

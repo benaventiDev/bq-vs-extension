@@ -68,6 +68,31 @@
         }
       },
       {
+        "command": "bqVsExtension.runSelectionBigQuery",
+        "title": "Run Selection on BigQuery",
+        "category": "BigQuery"
+      },
+      {
+        "command": "bqVsExtension.runFileBigQuery",
+        "title": "Run File on BigQuery",
+        "category": "BigQuery"
+      },
+      {
+        "command": "bqVsExtension.runSelectionSnowflake",
+        "title": "Run Selection on Snowflake",
+        "category": "Snowflake"
+      },
+      {
+        "command": "bqVsExtension.runFileSnowflake",
+        "title": "Run File on Snowflake",
+        "category": "Snowflake"
+      },
+      {
+        "command": "bqVsExtension.selectDefaultEngine",
+        "title": "Select Default Warehouse",
+        "category": "BigQuery Data Explorer"
+      },
+      {
         "command": "bqVsExtension.formatSql",
         "title": "BigQuery: Format SQL",
         "category": "BigQuery"
@@ -144,6 +169,26 @@
           "maximum": 5,
           "description": "Blank lines inserted between separate SQL statements when formatting a multi-statement script."
         },
+        "bqVsExtension.defaultEngine": {
+          "type": "string",
+          "enum": [
+            "",
+            "bigquery",
+            "snowflake"
+          ],
+          "enumDescriptions": [
+            "Automatic: use the only warehouse set up on this machine, or ask once when there are several.",
+            "BigQuery (uses your gcloud / bq setup).",
+            "Snowflake (uses your connections.toml / config.toml setup)."
+          ],
+          "default": "",
+          "markdownDescription": "Warehouse used by **Shift+Enter** and the Run buttons. Each warehouse also has its own commands (e.g. `Snowflake: Run Selection on Snowflake`) that you can bind to a different shortcut in [Keyboard Shortcuts](command:workbench.action.openGlobalKeybindings)."
+        },
+        "bqVsExtension.snowflake.connection": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Snowflake connection name from your `connections.toml` to use. Leave empty to follow your Snowflake setup (`SNOWFLAKE_DEFAULT_CONNECTION_NAME`, then `default_connection_name` in `config.toml`, then a connection named `default`, then the only connection). The extension never stores credentials; it reads the same files as the Snowflake CLI and drivers."
+        },
         "bqVsExtension.showSponsorNudge": {
           "type": "boolean",
           "default": true,
@@ -179,6 +224,8 @@
     "compile": "node esbuild.js",
     "watch": "node esbuild.js --watch",
     "typecheck": "tsc --noEmit",
+    "test": "node scripts/test.js",
+    "test:live": "node scripts/test.js --live",
     "vscode:prepublish": "node esbuild.js --production",
     "package": "vsce package --no-dependencies --no-yarn",
     "release": "node scripts/release.js"
@@ -196,6 +243,8 @@
     "exceljs": "^4.4.0",
     "google-auth-library": "^10.7.0",
     "monaco-editor": "^0.55.1",
+    "smol-toml": "^1.9.1",
+    "snowflake-sdk": "^3.4.1",
     "sql-formatter": "^15.8.0",
     "tree-kill": "^1.2.2",
     "undici": "^6.29.1"

@@ -17,8 +17,10 @@ import {
   splitStatementsForScript,
   type PerStatementSchema,
 } from '../bq/rewriteTemporal';
+import { resolveDefaultEngine, snowflakeConnectionSetting, type EngineId } from '../engines';
+import { runSnowflake } from '../snowflake/runSnowflake';
 
-export async function runSelectionCommand(provider: ResultViewProvider): Promise<void> {
+export async function runSelectionCommand(provider: ResultViewProvider, engine?: EngineId): Promise<void> {
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
     return;
@@ -32,18 +34,48 @@ export async function runSelectionCommand(provider: ResultViewProvider): Promise
     return;
   }
 
-  await runSqlForUri(provider, doc.uri, selectionText);
+  await runSqlForUri(provider, doc.uri, selectionText, engine);
 }
 
 /**
- * Shared run-pipeline used by both runSelection (Shift+Enter / Run Selection
+ * Entry point for every Run command. `engine` undefined = the default engine
+ * (setting → only detected warehouse → ask once); the per-warehouse commands
+ * pass it explicitly.
+ */
+export async function runSqlForUri(
+  provider: ResultViewProvider,
+  uri: vscode.Uri,
+  sqlText: string,
+  engine?: EngineId,
+): Promise<void> {
+  const target = engine ?? (await resolveDefaultEngine());
+  if (!target) return; // picker dismissed
+  if (target === 'snowflake') {
+    await keepEditorBestEffort();
+    const connection = snowflakeConnectionSetting();
+    await provider.runForUri(uri, (): RunHandle => runSnowflake(sqlText, connection));
+    return;
+  }
+  await runBigQueryForUri(provider, uri, sqlText);
+}
+
+async function keepEditorBestEffort(): Promise<void> {
+  try {
+    await vscode.commands.executeCommand('workbench.action.keepEditor');
+  } catch {
+    // No active preview editor / command unavailable — harmless.
+  }
+}
+
+/**
+ * BigQuery run-pipeline used by both runSelection (Shift+Enter / Run Selection
  * button) and runFile (Run File button). Caller is responsible for resolving
  * the SQL text from the editor — selection range vs whole document — and for
  * the .sql/file-scheme guard. Everything after that (dry-run, auto-wrap,
  * real query, enrichment, parse, multi-stmt routing, cancellation) lives
  * here so the two entry points stay byte-identical in behaviour.
  */
-export async function runSqlForUri(
+async function runBigQueryForUri(
   provider: ResultViewProvider,
   uri: vscode.Uri,
   sqlText: string,

@@ -58,6 +58,7 @@ import type { FilterDraft, SheetsFilterModel } from './filters/sheetsFilterUi';
 import { ColumnHeader, type ColumnHeaderParams } from './columnHeader';
 import { ColumnJumpHeader, type ColumnJumpHeaderParams } from './columnJump';
 import { compareDecimalStrings } from './decimal';
+import { compareTimestampStrings } from './temporal';
 import {
   renderExportButton,
   closeExportMenuExternally,
@@ -3561,12 +3562,13 @@ function infoIconSvg(): string {
  * the first line, then a breakdown line per phase. Native title attributes
  * preserve newlines on every platform we target.
  */
-function buildTimingTooltip(timing: { totalMs: number; dryMs: number; realMs: number; parseMs: number }): string {
+function buildTimingTooltip(timing: { totalMs: number; dryMs: number; realMs: number; parseMs: number; engine?: string }): string {
   const total = formatExecutionTime(timing.totalMs);
   const dry = formatExecutionTime(timing.dryMs);
   const real = formatExecutionTime(timing.realMs);
   const parse = formatExecutionTime(timing.parseMs);
-  return `Query completed in ${total}\n  Dry-run:  ${dry}\n  Query:    ${real}\n  Parse:    ${parse}`;
+  const firstPhase = timing.engine === 'snowflake' ? 'Connect:  ' : 'Dry-run:  ';
+  return `Query completed in ${total}\n  ${firstPhase}${dry}\n  Query:    ${real}\n  Parse:    ${parse}`;
 }
 
 /**
@@ -4314,6 +4316,9 @@ function buildColDef(
         ...base,
         ...sheetsFilter,
         cellDataType: 'text',
+        // Offsets (Snowflake TIMESTAMP_TZ / LTZ) make string order wrong;
+        // compare instants instead. Other temporal types stay lexicographic.
+        ...(col.type === 'timestamp' ? { comparator: compareTimestampStrings } : {}),
         valueFormatter: (p: ValueFormatterParams) => formatDateLike(p.value),
       };
     default:

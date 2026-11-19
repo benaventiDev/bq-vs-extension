@@ -101,6 +101,33 @@ installed and authenticated:
 > direct BigQuery calls. Both reuse the same Google account and auto-refresh — you won't be
 > prompted to log in again during normal use.
 
+### Snowflake (preview)
+
+Snowflake runs through the same grid. Nothing extra to install, and the extension never
+asks for or stores credentials: it reads the connection you already use with the Snowflake
+CLI / SnowSQL / the official drivers, from `connections.toml` (or `[connections.*]` in
+`config.toml`), looked up the same way those tools do:
+
+1. `$SNOWFLAKE_HOME`, if that folder exists
+2. `~/.snowflake/`, if it exists
+3. otherwise `%LOCALAPPDATA%\snowflake\` (Windows), `~/Library/Application Support/snowflake/`
+   (macOS) or `~/.config/snowflake/` (Linux)
+
+Any login method in that file works (password, SSO / `externalbrowser`, Okta, key pair,
+OAuth, MFA, programmatic access tokens, workload identity). The connection used is the
+`bqVsExtension.snowflake.connection` setting if set, otherwise `SNOWFLAKE_DEFAULT_CONNECTION_NAME`,
+then `default_connection_name` in `config.toml`, then a connection named `default`, then the
+only connection.
+
+**Which warehouse does Shift+Enter use?** If only one is set up on your machine, that one.
+If both are, the first run asks and remembers the choice (`bqVsExtension.defaultEngine`,
+or **Select Default Warehouse** from the Command Palette). Each warehouse also has its own
+commands — *Run Selection on BigQuery / on Snowflake*, *Run File on …* — that you can bind
+to separate shortcuts.
+
+Scripts run statement by statement on one session that's reused between runs, so
+`USE DATABASE`, session variables and temp tables carry over like in a worksheet.
+
 ## Quick start
 
 1. Open a `.sql` file **on disk** (untitled buffers and non-`.sql` files do nothing — the
